@@ -1,0 +1,326 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  BrushCleaning,
+  CalendarClock,
+  CircleQuestionMark,
+  Cog,
+  EllipsisVertical,
+  Info,
+  LockKeyholeOpen,
+  Package,
+  Pin,
+  PinOff,
+  SquarePen,
+  SquareUser,
+  Terminal,
+  Timer,
+  TimerOff,
+  Trash2,
+  Wallet,
+} from "lucide-react";
+import { toast } from "sonner";
+import { AccountStatus } from "@/components/account-status";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useGlobalAlertDialog } from "@/context-providers/alert-dialog.provider";
+import { formatDateIdStandard } from "@/lib/time-converter";
+import type { Account } from "@/services/account.service";
+import {
+  deleteAccount,
+  pinAccount,
+  unfreezeAccount,
+  updateAccount,
+} from "@/services/account.service";
+
+export function AccountCard({
+  account,
+  onEditClick,
+  onModifierClick,
+  onFreezeClick,
+  onProfileClick,
+  onExpenseClick,
+  onCommandClick,
+}: {
+  account: Account;
+  onEditClick: () => void;
+  onModifierClick: () => void;
+  onFreezeClick: () => void;
+  onProfileClick: () => void;
+  onExpenseClick: () => void;
+  onCommandClick: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const { showAlertDialog, hideAlertDialog } = useGlobalAlertDialog();
+
+  const pinAccountMutation = useMutation({
+    mutationFn: (payload: { accountId: string; pinned: boolean }) =>
+      pinAccount(payload.accountId, payload.pinned),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
+      toast.success("Akun Berhasil di Pin");
+    },
+    onError: (error) => {
+      toast.error(`Akun Gagal di Pin: ${error.message}`);
+    },
+  });
+
+  const accountUnfreezeMutation = useMutation({
+    mutationFn: (accountId: string) => unfreezeAccount(accountId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
+      toast.success("Akun berhasil dicairkan.");
+    },
+    onError: (error) => {
+      toast.error(`Gagal mencairkan akun: ${error.message}`);
+    },
+  });
+
+  const accountDeleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAccount(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
+      toast.success("Akun berhasil dihapus.");
+    },
+    onError: (error) => {
+      toast.error(`Gagal menghapus akun: ${error.message}`);
+    },
+    onSettled: () => {
+      hideAlertDialog();
+    },
+  });
+
+  const accountClearMutation = useMutation({
+    mutationFn: (id: string) => updateAccount(id, { status: "ready" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
+      toast.success("Akun berhasil dibersihkan.");
+    },
+    onError: (error) => {
+      toast.error(`Gagal membersihkan akun: ${error.message}`);
+    },
+    onSettled: () => {
+      hideAlertDialog();
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    showAlertDialog({
+      title: "Yakin ingin menghapus Akun?",
+      description: (
+        <>
+          Aksi tidak dapat dibatalkan. Ini akan menghapus akun
+          <span className="font-bold">
+            {" "}
+            {account.email.email} ({account.product_variant.product?.name}{" "}
+            {account.product_variant.name}){" "}
+          </span>
+          secara permanen.
+        </>
+      ),
+      confirmText: "Hapus",
+      isConfirming: accountDeleteMutation.isPending,
+      onConfirm: () => accountDeleteMutation.mutate(account.id),
+    });
+  };
+
+  const handleClearAccount = () => {
+    showAlertDialog({
+      title: "Yakin ingin mereset Akun?",
+      description: (
+        <>
+          Aksi tidak dapat dibatalkan. Ini akan mengubah status akun menjadi
+          enable (siap diapakai user baru) dan mengubah status user aktif jadi
+          expired pada akun:
+          <span className="font-bold">
+            {" "}
+            {account.email.email} ({account.product_variant.product?.name}{" "}
+            {account.product_variant.name}){" "}
+          </span>
+        </>
+      ),
+      confirmText: "Clear",
+      isConfirming: accountClearMutation.isPending,
+      onConfirm: () => accountClearMutation.mutate(account.id),
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex gap-2">
+          {account.pinned ? <Pin className="size-6" /> : null}
+          <p>{account.email.email}</p>
+        </CardTitle>
+        <CardDescription>
+          <p>{account.account_password}</p>
+        </CardDescription>
+        <CardAction>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="cursor-pointer">
+                <EllipsisVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem onSelect={onEditClick}>
+                <span>
+                  <SquarePen />
+                </span>{" "}
+                Update
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onModifierClick}>
+                <span>
+                  <Cog />
+                </span>
+                Modifier
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onCommandClick}>
+                <span>
+                  <Terminal />
+                </span>{" "}
+                Command
+              </DropdownMenuItem>
+              {!account.pinned ? (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    pinAccountMutation.mutate({
+                      accountId: account.id,
+                      pinned: true,
+                    });
+                  }}
+                >
+                  <span>
+                    <Pin />
+                  </span>
+                  Pin
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    pinAccountMutation.mutate({
+                      accountId: account.id,
+                      pinned: false,
+                    });
+                  }}
+                >
+                  <span>
+                    <PinOff />
+                  </span>
+                  Unpin
+                </DropdownMenuItem>
+              )}
+              {!account.freeze_until ? (
+                <DropdownMenuItem onSelect={onFreezeClick}>
+                  <span>
+                    <TimerOff />
+                  </span>
+                  Freeze
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    accountUnfreezeMutation.mutate(account.id);
+                  }}
+                >
+                  <span>
+                    <Timer />
+                  </span>
+                  Unfreeze
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={() => handleDeleteAccount()}>
+                <span>
+                  <Trash2 />
+                </span>{" "}
+                Delete
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleClearAccount()}>
+                <span>
+                  <BrushCleaning />
+                </span>{" "}
+                Clear
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-2 gap-4 text-muted-foreground">
+          <div className="space-y-1 w-full px-3 border-l-2 border-secondary">
+            <p className="text-xs inline-flex items-center gap-1">
+              <Package className="size-4" /> Produk
+            </p>
+            <p className="font-semibold text-sm">
+              {account.product_variant.product?.name}{" "}
+              {account.product_variant.name}
+            </p>
+          </div>
+          <div className="space-y-1 w-full px-3 border-l-2 border-secondary">
+            <p className="text-xs inline-flex items-center gap-1">
+              <LockKeyholeOpen className="size-4" /> Reset Password
+            </p>
+            <p className="font-semibold text-sm">
+              {account.batch_end_date
+                ? formatDateIdStandard(account.batch_end_date)
+                : "-"}
+            </p>
+          </div>
+          <div className="space-y-1 w-full px-3 border-l-2 border-secondary">
+            <p className="text-xs inline-flex items-center gap-1">
+              <CalendarClock className="size-4" /> Subs End
+            </p>
+            <p className="font-semibold text-sm">
+              {formatDateIdStandard(account.subscription_expiry, true)}
+            </p>
+          </div>
+          <div className="space-y-1 w-full px-3 border-l-2 border-secondary">
+            <p className="text-xs inline-flex items-center gap-1">
+              <Info className="size-4" /> Status
+            </p>
+            <AccountStatus account={account} />
+          </div>
+          <div className="space-y-1 w-full px-3 border-l-2 border-secondary col-span-full">
+            <p className="text-xs inline-flex items-center gap-1">
+              <Wallet className="size-4" /> Billing
+            </p>
+            <p className="font-semibold text-sm">{account.billing ?? "-"}</p>
+          </div>
+          <div className="space-y-1 w-full px-3 border-l-2 border-secondary col-span-full">
+            <p className="text-xs inline-flex items-center gap-1">
+              <CircleQuestionMark className="size-4" /> Label
+            </p>
+            <p className="font-semibold text-sm">{account.label || "-"}</p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          onClick={onProfileClick}
+          className="w-full cursor-pointer"
+        >
+          <SquareUser className="size-4" /> Profil{" "}
+          {`( ${account.profile?.length ?? account.profile_count ?? 0} )`}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onExpenseClick}
+          className="w-full cursor-pointer"
+        >
+          <Wallet className="size-4" /> Expense
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

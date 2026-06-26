@@ -1,0 +1,25 @@
+import { cn } from "@/lib/utils";
+
+export function AtlasIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="512"
+      height="512"
+      viewBox="0 0 512 512"
+      fill="none"
+      className={cn("size-8", className)}
+    >
+      <title>Atlas Icon</title>
+      <path
+        fill="#02cfe9"
+        d="m0 256 64-64 65 64-65 64zM96 352l64-64 65 64-65 64zM192 448l64-64 65 64-65 64zM96 160l64-64 65 64-65 64zM192 256l64-64 65 64-65 64zM288 352l64-64 65 64-65 64zM192 64l64-64 65 64-65 64zM288 160l64-64 65 64-65 64zM384 256l64-64 65 64-65 64z"
+      />
+      <path fill="#02cfe9" d="M247 63h18v386h-18z" />
+      <path
+        fill="#02cfe9"
+        d="M63 265v-18h386v18zM160 168v-18h193v18zM160 361v-18h193v18z"
+      />
+    </svg>
+  );
+}
