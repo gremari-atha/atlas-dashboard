@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { GlobalAlertDialogProvider } from "@/context-providers/alert-dialog.provider";
 import type { IAuthContext } from "@/context-providers/auth-context.type";
+import { ThemeProvider } from "@/hooks/theme.hook";
 import "../styles.css";
 
 interface MyRouterContext {
@@ -14,12 +15,14 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
-    <TooltipProvider>
-      <GlobalAlertDialogProvider>
-        <Outlet />
-      </GlobalAlertDialogProvider>
-      <Toaster richColors position="top-center" />
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <GlobalAlertDialogProvider>
+          <Outlet />
+        </GlobalAlertDialogProvider>
+        <Toaster richColors position="top-center" />
+      </TooltipProvider>
+    </ThemeProvider>
   ),
   errorComponent: ({ error }) => (
     <div className="flex h-screen w-full flex-col items-center justify-center gap-4 text-center p-6 bg-background">

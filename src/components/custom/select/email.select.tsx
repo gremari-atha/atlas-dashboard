@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { ChevronDown } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import { useState } from "react";
 import { NoData } from "@/components/custom/no-data";
@@ -47,7 +48,7 @@ export function EmailSelect({
   });
 
   const handleRadioValueChange = (value: string) => {
-    const selectedEmail = emails?.items.length
+    const selectedEmail = emails?.items?.length
       ? emails.items.find((v) => v.id === value)
       : undefined;
     if (!selectedEmail) {
@@ -93,6 +94,7 @@ export function EmailSelect({
           ) : (
             <span className="text-muted-foreground">Pilih Email...</span>
           )}
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground ml-2 opacity-50" />
         </Button>
       </DialogTrigger>
       <DialogContent className="w-screen h-screen sm:max-w-none max-w-none rounded-none flex flex-col p-4 md:p-14">
@@ -133,7 +135,7 @@ export function EmailSelect({
               <Skeleton className="h-16 rounded-lg" />
               <Skeleton className="h-16 rounded-lg" />
             </div>
-          ) : emails?.items.length ? (
+          ) : emails?.items?.length ? (
             <RadioGroupPrimitive.Root
               value={selectedItem?.id ?? ""}
               onValueChange={handleRadioValueChange}

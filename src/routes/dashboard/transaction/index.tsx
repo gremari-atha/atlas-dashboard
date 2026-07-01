@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -79,6 +79,9 @@ function RouteComponent() {
   const queryClient = useQueryClient();
   const { showAlertDialog, hideAlertDialog } = useGlobalAlertDialog();
 
+  const [customerSearch, setCustomerSearch] = useState(
+    searchParam.customer || "",
+  );
   const sort = useMemo<string>(
     () =>
       !!searchParam.order_by && !!searchParam.order_direction
@@ -86,6 +89,10 @@ function RouteComponent() {
         : "default",
     [searchParam.order_by, searchParam.order_direction],
   );
+
+  useEffect(() => {
+    setCustomerSearch(searchParam.customer || "");
+  }, [searchParam.customer]);
 
   const [dialogTransactionUserOpen, setDialogTransactionUserOpen] =
     useState<boolean>(false);
@@ -235,10 +242,13 @@ function RouteComponent() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               type="text"
-              defaultValue={searchParam.customer || ""}
+              value={customerSearch}
               placeholder="Cari Customer..."
               className="pl-9 w-full bg-background/50"
-              onChange={(e) => handleSearchCustomer(e.target.value)}
+              onChange={(e) => {
+                setCustomerSearch(e.target.value);
+                handleSearchCustomer(e.target.value);
+              }}
             />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
@@ -285,7 +295,7 @@ function RouteComponent() {
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
           </div>
-        ) : transactions?.items.length ? (
+        ) : transactions?.items?.length ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/40">
@@ -339,8 +349,8 @@ function RouteComponent() {
                               size="icon"
                               onClick={() => {
                                 handleCopyTemplate(
-                                  transaction.items[0].user!.profile,
-                                  transaction.items[0].user!.account,
+                                  transaction.items[0].user?.profile,
+                                  transaction.items[0].user?.account,
                                 );
                               }}
                               className="size-7 shrink-0 cursor-pointer hover:bg-muted"
@@ -518,8 +528,8 @@ function RouteComponent() {
                             size="icon"
                             onClick={() => {
                               handleCopyTemplate(
-                                item.user!.profile,
-                                item.user!.account,
+                                item.user?.profile,
+                                item.user?.account,
                               );
                             }}
                             className="size-7 cursor-pointer shrink-0"

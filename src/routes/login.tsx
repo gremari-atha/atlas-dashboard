@@ -19,7 +19,10 @@ const LoginFormSchema = z.object({
 
 export const Route = createFileRoute("/login")({
   beforeLoad: ({ context }) => {
-    if (context.auth?.isAuthenticated) {
+    const isAuthed =
+      context.auth?.isAuthenticated ||
+      (typeof window !== "undefined" && !!localStorage.getItem("auth.tenant"));
+    if (isAuthed) {
       throw redirect({ to: "/dashboard" });
     }
   },
@@ -38,11 +41,10 @@ function RouteComponent() {
       tenant_id: "",
       secret: "",
     },
-    onSubmit: async ({ value, formApi }) => {
+    onSubmit: async ({ value }) => {
       try {
         await auth.login(value.tenant_id, value.secret);
-        formApi.reset();
-        navigate({ to: "/dashboard" });
+        await navigate({ to: "/dashboard" });
       } catch (error) {
         toast.error((error as Error).message);
       }

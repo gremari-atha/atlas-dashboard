@@ -54,6 +54,10 @@ export function copyAccountTemplate(
 
 export function handleCopyTemplate(profile: AccountProfile, account: Account) {
   const template = copyAccountTemplate(profile, account);
+  if (!template) {
+    toast.warning("Varian produk ini belum dikonfigurasi template salinnya");
+    return;
+  }
   navigator.clipboard
     .writeText(template)
     .then(() => {

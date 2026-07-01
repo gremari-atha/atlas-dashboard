@@ -21,7 +21,7 @@ export function PeakHourChart({ data }: { data: AllStatistic["peakHour"] }) {
       config={{
         transaction_count: {
           label: "Transaksi",
-          color: "hsl(var(--chart-2))",
+          color: "var(--primary)",
         },
       }}
       className="aspect-auto h-[250px] w-full"

@@ -1,11 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, UserPlus } from "lucide-react";
+import { LayoutGrid, Plus, TableProperties, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { AccountStatus } from "@/components/account-status";
 import { NoData } from "@/components/custom/no-data";
 import { Pagination } from "@/components/custom/pagination";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { AccountFilter } from "@/services/account.service";
 import {
   GetAccountsParamsSchema,
@@ -69,10 +78,12 @@ function RouteComponent() {
     useState<boolean>(false);
   const [dialogExpenseOpen, setDialogExpenseOpen] = useState<boolean>(false);
   const [dialogCommandOpen, setDialogCommandOpen] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   const { data: accounts, isLoading: isFetchAccountLoading } = useQuery({
     queryKey: ["account", searchParam],
-    queryFn: ({ signal }) => getAllAccount({ ...searchParam, signal }),
+    queryFn: ({ signal }) =>
+      getAllAccount({ limit: 12, ...searchParam, signal }),
   });
 
   const selectedAccount = useMemo(() => {
@@ -169,11 +180,35 @@ function RouteComponent() {
         onAccountFilterChange={handleFilterChange}
       />
 
-      <PagesAccountIndexSearch
-        defaultSort={sort}
-        onSortChanges={handleSortChange}
-        onSearchChanges={handleSearchChange}
-      />
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2 w-full md:w-auto self-start md:self-center shrink-0">
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("grid")}
+            className="size-9 cursor-pointer"
+            title="Grid View"
+          >
+            <LayoutGrid className="size-4" />
+          </Button>
+          <Button
+            variant={viewMode === "table" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("table")}
+            className="size-9 cursor-pointer"
+            title="Table View"
+          >
+            <TableProperties className="size-4" />
+          </Button>
+        </div>
+        <div className="w-full md:flex-1">
+          <PagesAccountIndexSearch
+            defaultSort={sort}
+            onSortChanges={handleSortChange}
+            onSearchChanges={handleSearchChange}
+          />
+        </div>
+      </div>
 
       <PagesAccountIndexCount
         accountCountFilter={{
@@ -190,7 +225,7 @@ function RouteComponent() {
             <Skeleton className="h-48 rounded-xl" />
           </div>
         </div>
-      ) : accounts?.items.length ? (
+      ) : accounts?.items?.length ? (
         <div className="space-y-6">
           {accounts.paginationData.totalPage > 1 && (
             <div className="flex items-center justify-center">
@@ -202,38 +237,160 @@ function RouteComponent() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {accounts.items.map((account) => (
-              <AccountCard
-                key={`account-${account.id}`}
-                account={account}
-                onEditClick={() => {
-                  setSelectedAccountId(account.id);
-                  setDialogAccountEditOpen(true);
-                }}
-                onModifierClick={() => {
-                  setSelectedAccountId(account.id);
-                  setDialogAccountModifierOpen(true);
-                }}
-                onFreezeClick={() => {
-                  setSelectedAccountId(account.id);
-                  setDialogFreezeOpen(true);
-                }}
-                onProfileClick={() => {
-                  setSelectedAccountId(account.id);
-                  setDialogProfileDetailOpen(true);
-                }}
-                onExpenseClick={() => {
-                  setSelectedAccountId(account.id);
-                  setDialogExpenseOpen(true);
-                }}
-                onCommandClick={() => {
-                  setSelectedAccountId(account.id);
-                  setDialogCommandOpen(true);
-                }}
-              />
-            ))}
-          </div>
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {accounts.items.map((account) => (
+                <AccountCard
+                  key={`account-${account.id}`}
+                  account={account}
+                  onEditClick={() => {
+                    setSelectedAccountId(account.id);
+                    setDialogAccountEditOpen(true);
+                  }}
+                  onModifierClick={() => {
+                    setSelectedAccountId(account.id);
+                    setDialogAccountModifierOpen(true);
+                  }}
+                  onFreezeClick={() => {
+                    setSelectedAccountId(account.id);
+                    setDialogFreezeOpen(true);
+                  }}
+                  onProfileClick={() => {
+                    setSelectedAccountId(account.id);
+                    setDialogProfileDetailOpen(true);
+                  }}
+                  onExpenseClick={() => {
+                    setSelectedAccountId(account.id);
+                    setDialogExpenseOpen(true);
+                  }}
+                  onCommandClick={() => {
+                    setSelectedAccountId(account.id);
+                    setDialogCommandOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/40 shadow-sm bg-card/60 backdrop-blur-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-muted/40">
+                    <TableRow>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                        Akun (Email)
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                        Password
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                        Produk & Varian
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                        Status
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                        Subscription Expiry
+                      </TableHead>
+                      <TableHead className="text-right text-xs font-semibold uppercase tracking-wider">
+                        Aksi
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {accounts.items.map((account) => (
+                      <TableRow
+                        key={`account-row-${account.id}`}
+                        className="hover:bg-muted/10 transition-colors"
+                      >
+                        <TableCell className="font-semibold text-xs text-foreground py-3">
+                          {account.email.email}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs py-3">
+                          {account.account_password}
+                        </TableCell>
+                        <TableCell className="text-xs py-3">
+                          {account.product_variant ? (
+                            <div className="flex flex-col">
+                              <span className="font-semibold">
+                                {account.product_variant.product?.name}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground font-normal">
+                                {account.product_variant.name}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="italic text-muted-foreground">
+                              — No Product —
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <AccountStatus account={account} />
+                        </TableCell>
+                        <TableCell className="text-xs font-semibold py-3">
+                          {new Date(
+                            account.subscription_expiry,
+                          ).toLocaleDateString("id-ID", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right py-3">
+                          <div className="flex gap-1.5 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[10px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedAccountId(account.id);
+                                setDialogProfileDetailOpen(true);
+                              }}
+                            >
+                              Profile
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[10px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedAccountId(account.id);
+                                setDialogCommandOpen(true);
+                              }}
+                            >
+                              Command
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[10px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedAccountId(account.id);
+                                setDialogFreezeOpen(true);
+                              }}
+                            >
+                              Freeze
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[10px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedAccountId(account.id);
+                                setDialogAccountEditOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
 
           {accounts.paginationData.totalPage > 1 && (
             <div className="flex items-center justify-center pt-2">

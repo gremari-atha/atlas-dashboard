@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import {
-  Bar,
+  Area,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -31,20 +31,46 @@ function RevenueChart({ data }: { data: RevenueStatistic }) {
       config={{
         net_income: {
           label: "Penghasilan Bersih",
-          color: "hsl(var(--chart-1))",
+          color: "var(--primary)",
         },
         expense: {
           label: "Pengeluaran",
-          color: "hsl(var(--chart-2))",
+          color: "var(--destructive)",
         },
         transaction_count: {
           label: "Transaksi",
-          color: "hsl(var(--chart-3))",
+          color: "oklch(0.62 0.16 250)",
         },
       }}
       className="aspect-auto h-[350px] w-full"
     >
       <ComposedChart accessibilityLayer data={data.daily}>
+        <defs>
+          <linearGradient id="colorNetIncome" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor="var(--color-net_income)"
+              stopOpacity={0.35}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--color-net_income)"
+              stopOpacity={0.02}
+            />
+          </linearGradient>
+          <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor="var(--color-expense)"
+              stopOpacity={0.25}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--color-expense)"
+              stopOpacity={0.01}
+            />
+          </linearGradient>
+        </defs>
         <CartesianGrid
           vertical={false}
           strokeDasharray="3 3"
@@ -91,19 +117,23 @@ function RevenueChart({ data }: { data: RevenueStatistic }) {
             />
           }
         />
-        <Bar
+        <Area
+          type="monotone"
           dataKey="net_income"
           yAxisId="axis_revenue"
-          fill="var(--color-net_income)"
-          radius={[4, 4, 0, 0]}
-          barSize={20}
+          stroke="var(--color-net_income)"
+          strokeWidth={2}
+          fillOpacity={1}
+          fill="url(#colorNetIncome)"
         />
-        <Bar
+        <Area
+          type="monotone"
           dataKey="expense"
           yAxisId="axis_revenue"
-          fill="var(--color-expense)"
-          radius={[4, 4, 0, 0]}
-          barSize={20}
+          stroke="var(--color-expense)"
+          strokeWidth={1.5}
+          fillOpacity={1}
+          fill="url(#colorExpense)"
         />
 
         <Line
@@ -111,9 +141,14 @@ function RevenueChart({ data }: { data: RevenueStatistic }) {
           dataKey="transaction_count"
           yAxisId="axis_trx"
           stroke="var(--color-transaction_count)"
-          strokeWidth={2}
-          dot={{ r: 4, fill: "var(--background)" }}
-          activeDot={{ r: 6 }}
+          strokeWidth={3}
+          dot={{
+            r: 4,
+            fill: "var(--background)",
+            stroke: "var(--color-transaction_count)",
+            strokeWidth: 2,
+          }}
+          activeDot={{ r: 6, fill: "var(--color-transaction_count)" }}
         />
       </ComposedChart>
     </ChartContainer>

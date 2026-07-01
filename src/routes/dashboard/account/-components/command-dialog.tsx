@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SelectInput } from "@/components/forms/common/inputs/select-input";
@@ -22,10 +23,11 @@ export function PagesAccountIndexDialogCommand({
   onOpenChange: (value: boolean) => void;
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedCommand, setSelectedCommand] = useState<string>("");
 
   const dispatchTaskMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!selectedAccount) throw new Error("No account selected");
       if (!selectedCommand) throw new Error("No command selected");
 
@@ -45,21 +47,27 @@ export function PagesAccountIndexDialogCommand({
           password: selectedAccount.account_password,
         });
 
-        return dispatchTask(taskId, {
+        await dispatchTask(taskId, {
           module: "netflix",
           type: "resetPassword",
           executeAt: new Date().toISOString(),
           maxRetries: 0,
           payload,
         });
+
+        return { taskId };
       }
 
       throw new Error("Unsupported command");
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["account"] });
       toast.success("Command berhasil dikirim.");
       onOpenChange(false);
+      navigate({
+        to: "/dashboard/bot/command-progress",
+        search: { commandId: data.taskId },
+      });
     },
     onError: (error) => {
       toast.error(`Gagal mengeksekusi command: ${error.message}`);

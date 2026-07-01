@@ -171,7 +171,7 @@ export function PagesAccountIndexDialogExpense({
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
               </div>
-            ) : expenses?.items.length ? (
+            ) : expenses?.items?.length ? (
               <>
                 <ScrollArea className="flex-1 pr-4">
                   <div className="space-y-3">

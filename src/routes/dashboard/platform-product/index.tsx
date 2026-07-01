@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowUpDown,
-  Blocks,
-  EllipsisVertical,
   Package,
   Plus,
   Search,
@@ -17,19 +15,7 @@ import { NoData } from "@/components/custom/no-data";
 import { Pagination } from "@/components/custom/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -39,6 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 import { useGlobalAlertDialog } from "@/context-providers/alert-dialog.provider";
 import type {
   PlatformProduct,
@@ -212,108 +207,113 @@ function RouteComponent() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="rounded-xl border border-border/40 shadow-sm bg-card/60 backdrop-blur-md overflow-hidden">
         {isFetchPlatformProductLoading ? (
-          <>
-            <Skeleton className="h-44 rounded-xl" />
-            <Skeleton className="h-44 rounded-xl" />
-            <Skeleton className="h-44 rounded-xl" />
-          </>
-        ) : platformProducts?.items.length ? (
-          platformProducts.items.map((platformProduct) => (
-            <Card
-              key={platformProduct.id}
-              className="relative overflow-hidden border-border/40 shadow-sm bg-card/60 backdrop-blur-md hover:shadow-md hover:border-border/80 transition-all duration-300 group"
-            >
-              <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
-                <div className="space-y-1 pr-6">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/5 text-primary border-primary/20 text-[10px] py-0 px-2 font-medium"
-                    >
-                      {platformProduct.platform}
-                    </Badge>
-                    {platformProduct.platform_product_id && (
-                      <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
-                        ID: {platformProduct.platform_product_id}
-                      </span>
-                    )}
-                  </div>
-                  <CardTitle className="text-base font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
-                    {platformProduct.name}
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground font-medium">
-                    {platformProduct.variant || "— No Variant —"}
-                  </CardDescription>
-                </div>
-
-                <div className="absolute right-3 top-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 hover:bg-muted"
+          <div className="p-8 space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+          </div>
+        ) : platformProducts?.items?.length ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Nama Produk Platform
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Platform
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    ID Produk Platform
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Produk Internal (Varian)
+                  </TableHead>
+                  <TableHead className="text-right text-xs font-semibold uppercase tracking-wider">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {platformProducts.items.map((platformProduct) => (
+                  <TableRow
+                    key={platformProduct.id}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
+                    <TableCell className="font-semibold text-xs text-foreground">
+                      <div className="flex flex-col">
+                        <span>{platformProduct.name}</span>
+                        {platformProduct.variant && (
+                          <span className="text-[10px] text-muted-foreground font-normal">
+                            {platformProduct.variant}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className="bg-primary/5 text-primary border-primary/20 text-[10px] py-0 px-2 font-medium"
                       >
-                        <EllipsisVertical className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-36">
-                      <DropdownMenuItem asChild>
-                        <Link
-                          to="/dashboard/platform-product/$id"
-                          params={{ id: platformProduct.id }}
-                          className="cursor-pointer flex items-center"
+                        {platformProduct.platform}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {platformProduct.platform_product_id || "—"}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {platformProduct.product_variant ? (
+                        <div className="flex flex-col">
+                          <span className="font-semibold">
+                            {platformProduct.product_variant.product?.name}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {platformProduct.product_variant.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="italic text-muted-foreground">
+                          — Belum Terhubung —
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="h-8 text-xs cursor-pointer"
                         >
-                          <SquarePen className="mr-2 size-4 text-muted-foreground" />
-                          Update
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          handleDeletePlatformProduct(platformProduct)
-                        }
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                      >
-                        <Trash2 className="mr-2 size-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mt-2 pt-3 border-t border-border/40 grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider block">
-                      Platform
-                    </span>
-                    <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                      <Blocks className="size-3.5 text-primary" />
-                      {platformProduct.platform}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider block">
-                      Internal Product
-                    </span>
-                    <span
-                      className="text-sm font-semibold text-foreground block truncate"
-                      title={`${platformProduct.product_variant.product?.name} (${platformProduct.product_variant.name})`}
-                    >
-                      {platformProduct.product_variant.product?.name}{" "}
-                      <span className="text-xs text-muted-foreground font-normal">
-                        ({platformProduct.product_variant.name})
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                          <Link
+                            to="/dashboard/platform-product/$id"
+                            params={{ id: platformProduct.id }}
+                          >
+                            <SquarePen className="size-3.5 mr-1" />
+                            Update
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            handleDeletePlatformProduct(platformProduct)
+                          }
+                          className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
-          <div className="col-span-full">
+          <div className="py-12">
             <NoData>Produk Platform tidak ditemukan</NoData>
           </div>
         )}

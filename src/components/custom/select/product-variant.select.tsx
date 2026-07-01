@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { ChevronDown } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import { useState } from "react";
 import { NoData } from "@/components/custom/no-data";
@@ -44,7 +45,7 @@ export function ProductVariantSelect({
     });
 
   const handleRadioValueChange = (value: string) => {
-    const selectedProductVariant = productVariants?.items.length
+    const selectedProductVariant = productVariants?.items?.length
       ? productVariants.items.find((v) => v.id === value)
       : undefined;
     if (!selectedProductVariant) {
@@ -84,6 +85,7 @@ export function ProductVariantSelect({
               Pilih Varian Produk...
             </span>
           )}
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground ml-2 opacity-50" />
         </Button>
       </DialogTrigger>
       <DialogContent className="w-screen h-screen sm:max-w-none max-w-none rounded-none flex flex-col p-4 md:p-14">
@@ -116,7 +118,7 @@ export function ProductVariantSelect({
               <Skeleton className="h-16 rounded-lg" />
               <Skeleton className="h-16 rounded-lg" />
             </div>
-          ) : productVariants?.items.length ? (
+          ) : productVariants?.items?.length ? (
             <RadioGroupPrimitive.Root
               value={selectedItem?.id ?? ""}
               onValueChange={handleRadioValueChange}

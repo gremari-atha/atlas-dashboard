@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { EllipsisVertical, Plus, SquarePen, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { NoData } from "@/components/custom/no-data";
@@ -61,11 +61,17 @@ function RouteComponent() {
   const [filter, setFilter] = useState<EmailFilter>({
     email: searchParam.email ?? "",
   });
+  const [searchValue, setSearchValue] = useState(searchParam.email ?? "");
   const [sort, setSort] = useState<string>(
     searchParam.order_by && searchParam.order_direction
       ? `${searchParam.order_by}:${searchParam.order_direction}`
       : "default",
   );
+
+  useEffect(() => {
+    setSearchValue(searchParam.email ?? "");
+    setFilter({ email: searchParam.email ?? "" });
+  }, [searchParam.email]);
 
   const { data: emails, isLoading: isFetchEmailLoading } = useQuery({
     queryKey: ["email", searchParam],
@@ -166,9 +172,12 @@ function RouteComponent() {
       <div className="flex flex-col sm:flex-row gap-4 items-center bg-card/40 border border-border/40 p-4 rounded-xl backdrop-blur-md">
         <Input
           type="text"
-          defaultValue={filter.email}
+          value={searchValue}
           placeholder="Cari Email..."
-          onChange={(e) => handleSearchEmail(e.target.value)}
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+            handleSearchEmail(e.target.value);
+          }}
           className="flex-1 h-9 text-xs"
         />
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
@@ -211,7 +220,7 @@ function RouteComponent() {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
-          ) : emails?.items.length ? (
+          ) : emails?.items?.length ? (
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow>

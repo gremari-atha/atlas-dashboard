@@ -252,7 +252,7 @@ function RouteComponent() {
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
-        ) : emailSubjects?.items.length ? (
+        ) : emailSubjects?.items?.length ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/40">

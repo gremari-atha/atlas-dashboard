@@ -41,7 +41,7 @@ function RouteComponent() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in duration-300">
       <div className="flex items-center gap-3">
         <Button variant="outline" size="icon-sm" asChild className="shrink-0">
           <Link to="/dashboard/email-subject">

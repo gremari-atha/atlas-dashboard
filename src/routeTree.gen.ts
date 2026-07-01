@@ -21,6 +21,7 @@ import { Route as DashboardExpenseIndexRouteImport } from './routes/dashboard/ex
 import { Route as DashboardEmailIndexRouteImport } from './routes/dashboard/email/index'
 import { Route as DashboardEmailSubjectIndexRouteImport } from './routes/dashboard/email-subject/index'
 import { Route as DashboardEmailMessageIndexRouteImport } from './routes/dashboard/email-message/index'
+import { Route as DashboardBotIndexRouteImport } from './routes/dashboard/bot/index'
 import { Route as DashboardAccountIndexRouteImport } from './routes/dashboard/account/index'
 import { Route as DashboardTransactionCreateRouteImport } from './routes/dashboard/transaction/create'
 import { Route as DashboardProductCreateRouteImport } from './routes/dashboard/product/create'
@@ -31,6 +32,8 @@ import { Route as DashboardEmailCreateRouteImport } from './routes/dashboard/ema
 import { Route as DashboardEmailIdRouteImport } from './routes/dashboard/email/$id'
 import { Route as DashboardEmailSubjectCreateRouteImport } from './routes/dashboard/email-subject/create'
 import { Route as DashboardEmailSubjectIdRouteImport } from './routes/dashboard/email-subject/$id'
+import { Route as DashboardBotCommandProgressRouteImport } from './routes/dashboard/bot/command-progress'
+import { Route as DashboardBotBotNameRouteImport } from './routes/dashboard/bot/$botName'
 import { Route as DashboardAccountCreateRouteImport } from './routes/dashboard/account/create'
 
 const LoginRoute = LoginRouteImport.update({
@@ -97,6 +100,11 @@ const DashboardEmailMessageIndexRoute =
     path: '/email-message/',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
+const DashboardBotIndexRoute = DashboardBotIndexRouteImport.update({
+  id: '/bot/',
+  path: '/bot/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardAccountIndexRoute = DashboardAccountIndexRouteImport.update({
   id: '/account/',
   path: '/account/',
@@ -151,6 +159,17 @@ const DashboardEmailSubjectIdRoute = DashboardEmailSubjectIdRouteImport.update({
   path: '/email-subject/$id',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardBotCommandProgressRoute =
+  DashboardBotCommandProgressRouteImport.update({
+    id: '/bot/command-progress',
+    path: '/bot/command-progress',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardBotBotNameRoute = DashboardBotBotNameRouteImport.update({
+  id: '/bot/$botName',
+  path: '/bot/$botName',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardAccountCreateRoute = DashboardAccountCreateRouteImport.update({
   id: '/account/create',
   path: '/account/create',
@@ -163,6 +182,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/account/create': typeof DashboardAccountCreateRoute
+  '/dashboard/bot/$botName': typeof DashboardBotBotNameRoute
+  '/dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
   '/dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
   '/dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
   '/dashboard/email/$id': typeof DashboardEmailIdRoute
@@ -173,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/product/create': typeof DashboardProductCreateRoute
   '/dashboard/transaction/create': typeof DashboardTransactionCreateRoute
   '/dashboard/account/': typeof DashboardAccountIndexRoute
+  '/dashboard/bot/': typeof DashboardBotIndexRoute
   '/dashboard/email-message/': typeof DashboardEmailMessageIndexRoute
   '/dashboard/email-subject/': typeof DashboardEmailSubjectIndexRoute
   '/dashboard/email/': typeof DashboardEmailIndexRoute
@@ -187,6 +209,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/account/create': typeof DashboardAccountCreateRoute
+  '/dashboard/bot/$botName': typeof DashboardBotBotNameRoute
+  '/dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
   '/dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
   '/dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
   '/dashboard/email/$id': typeof DashboardEmailIdRoute
@@ -197,6 +221,7 @@ export interface FileRoutesByTo {
   '/dashboard/product/create': typeof DashboardProductCreateRoute
   '/dashboard/transaction/create': typeof DashboardTransactionCreateRoute
   '/dashboard/account': typeof DashboardAccountIndexRoute
+  '/dashboard/bot': typeof DashboardBotIndexRoute
   '/dashboard/email-message': typeof DashboardEmailMessageIndexRoute
   '/dashboard/email-subject': typeof DashboardEmailSubjectIndexRoute
   '/dashboard/email': typeof DashboardEmailIndexRoute
@@ -213,6 +238,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/account/create': typeof DashboardAccountCreateRoute
+  '/dashboard/bot/$botName': typeof DashboardBotBotNameRoute
+  '/dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
   '/dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
   '/dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
   '/dashboard/email/$id': typeof DashboardEmailIdRoute
@@ -223,6 +250,7 @@ export interface FileRoutesById {
   '/dashboard/product/create': typeof DashboardProductCreateRoute
   '/dashboard/transaction/create': typeof DashboardTransactionCreateRoute
   '/dashboard/account/': typeof DashboardAccountIndexRoute
+  '/dashboard/bot/': typeof DashboardBotIndexRoute
   '/dashboard/email-message/': typeof DashboardEmailMessageIndexRoute
   '/dashboard/email-subject/': typeof DashboardEmailSubjectIndexRoute
   '/dashboard/email/': typeof DashboardEmailIndexRoute
@@ -240,6 +268,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/'
     | '/dashboard/account/create'
+    | '/dashboard/bot/$botName'
+    | '/dashboard/bot/command-progress'
     | '/dashboard/email-subject/$id'
     | '/dashboard/email-subject/create'
     | '/dashboard/email/$id'
@@ -250,6 +280,7 @@ export interface FileRouteTypes {
     | '/dashboard/product/create'
     | '/dashboard/transaction/create'
     | '/dashboard/account/'
+    | '/dashboard/bot/'
     | '/dashboard/email-message/'
     | '/dashboard/email-subject/'
     | '/dashboard/email/'
@@ -264,6 +295,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/dashboard/account/create'
+    | '/dashboard/bot/$botName'
+    | '/dashboard/bot/command-progress'
     | '/dashboard/email-subject/$id'
     | '/dashboard/email-subject/create'
     | '/dashboard/email/$id'
@@ -274,6 +307,7 @@ export interface FileRouteTypes {
     | '/dashboard/product/create'
     | '/dashboard/transaction/create'
     | '/dashboard/account'
+    | '/dashboard/bot'
     | '/dashboard/email-message'
     | '/dashboard/email-subject'
     | '/dashboard/email'
@@ -289,6 +323,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/'
     | '/dashboard/account/create'
+    | '/dashboard/bot/$botName'
+    | '/dashboard/bot/command-progress'
     | '/dashboard/email-subject/$id'
     | '/dashboard/email-subject/create'
     | '/dashboard/email/$id'
@@ -299,6 +335,7 @@ export interface FileRouteTypes {
     | '/dashboard/product/create'
     | '/dashboard/transaction/create'
     | '/dashboard/account/'
+    | '/dashboard/bot/'
     | '/dashboard/email-message/'
     | '/dashboard/email-subject/'
     | '/dashboard/email/'
@@ -401,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardEmailMessageIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/bot/': {
+      id: '/dashboard/bot/'
+      path: '/bot'
+      fullPath: '/dashboard/bot/'
+      preLoaderRoute: typeof DashboardBotIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/account/': {
       id: '/dashboard/account/'
       path: '/account'
@@ -471,6 +515,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardEmailSubjectIdRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/bot/command-progress': {
+      id: '/dashboard/bot/command-progress'
+      path: '/bot/command-progress'
+      fullPath: '/dashboard/bot/command-progress'
+      preLoaderRoute: typeof DashboardBotCommandProgressRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/bot/$botName': {
+      id: '/dashboard/bot/$botName'
+      path: '/bot/$botName'
+      fullPath: '/dashboard/bot/$botName'
+      preLoaderRoute: typeof DashboardBotBotNameRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/account/create': {
       id: '/dashboard/account/create'
       path: '/account/create'
@@ -484,6 +542,8 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAccountCreateRoute: typeof DashboardAccountCreateRoute
+  DashboardBotBotNameRoute: typeof DashboardBotBotNameRoute
+  DashboardBotCommandProgressRoute: typeof DashboardBotCommandProgressRoute
   DashboardEmailSubjectIdRoute: typeof DashboardEmailSubjectIdRoute
   DashboardEmailSubjectCreateRoute: typeof DashboardEmailSubjectCreateRoute
   DashboardEmailIdRoute: typeof DashboardEmailIdRoute
@@ -494,6 +554,7 @@ interface DashboardRouteRouteChildren {
   DashboardProductCreateRoute: typeof DashboardProductCreateRoute
   DashboardTransactionCreateRoute: typeof DashboardTransactionCreateRoute
   DashboardAccountIndexRoute: typeof DashboardAccountIndexRoute
+  DashboardBotIndexRoute: typeof DashboardBotIndexRoute
   DashboardEmailMessageIndexRoute: typeof DashboardEmailMessageIndexRoute
   DashboardEmailSubjectIndexRoute: typeof DashboardEmailSubjectIndexRoute
   DashboardEmailIndexRoute: typeof DashboardEmailIndexRoute
@@ -507,6 +568,8 @@ interface DashboardRouteRouteChildren {
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAccountCreateRoute: DashboardAccountCreateRoute,
+  DashboardBotBotNameRoute: DashboardBotBotNameRoute,
+  DashboardBotCommandProgressRoute: DashboardBotCommandProgressRoute,
   DashboardEmailSubjectIdRoute: DashboardEmailSubjectIdRoute,
   DashboardEmailSubjectCreateRoute: DashboardEmailSubjectCreateRoute,
   DashboardEmailIdRoute: DashboardEmailIdRoute,
@@ -517,6 +580,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardProductCreateRoute: DashboardProductCreateRoute,
   DashboardTransactionCreateRoute: DashboardTransactionCreateRoute,
   DashboardAccountIndexRoute: DashboardAccountIndexRoute,
+  DashboardBotIndexRoute: DashboardBotIndexRoute,
   DashboardEmailMessageIndexRoute: DashboardEmailMessageIndexRoute,
   DashboardEmailSubjectIndexRoute: DashboardEmailSubjectIndexRoute,
   DashboardEmailIndexRoute: DashboardEmailIndexRoute,

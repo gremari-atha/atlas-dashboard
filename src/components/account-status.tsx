@@ -1,32 +1,35 @@
 import { useMemo } from "react";
-import { largestFlooredUnit } from "@/lib/time-converter";
 import { cn } from "@/lib/utils";
 import type { Account } from "@/services/account.service";
 
 export function AccountStatus({
   account,
-  size,
+  className,
 }: {
   account: Account;
-  size?: "sm" | "md";
+  className?: string;
 }) {
   const status = useMemo(() => {
     if (account.freeze_until) {
-      const freezeDurationMs = account.freeze_until.getTime() - Date.now();
-      let freezeText = "";
-      if (freezeDurationMs > 0) {
-        const [duration, durationUnit] = largestFlooredUnit(freezeDurationMs);
-        freezeText = `Freeze (${duration} ${durationUnit})`;
-      } else {
-        freezeText = "Freeze (???)";
-      }
-      return { color: "bg-amber-500", text: freezeText };
+      return {
+        badgeClass:
+          "bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-500/25",
+        text: "Freeze",
+      };
     }
     if (account.status === "disable") {
-      return { color: "bg-red-500", text: "Disable" };
+      return {
+        badgeClass:
+          "bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/25",
+        text: "Disable",
+      };
     }
-    if (account.status === "ready") {
-      return { color: "bg-neutral-300", text: "Enable (User Kosong)" };
+    if (account.status === "ready" || account.status === "enabled") {
+      return {
+        badgeClass:
+          "bg-neutral-500/10 text-neutral-500 dark:text-neutral-400 border-neutral-500/25",
+        text: "Kosong",
+      };
     }
     if (account.status === "active") {
       const { maxUser, userCount } = account.profile
@@ -44,22 +47,33 @@ export function AccountStatus({
           };
 
       if (userCount >= maxUser) {
-        return { color: "bg-green-500", text: "Aktif (User Penuh)" };
+        return {
+          badgeClass:
+            "bg-blue-500/10 text-blue-500 dark:text-blue-400 border-blue-500/25",
+          text: "Penuh",
+        };
       }
-      return { color: "bg-blue-500", text: "Aktif (User Tersedia)" };
+      return {
+        badgeClass:
+          "bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-500/25",
+        text: "Tersedia",
+      };
     }
-    return { color: "bg-neutral-700", text: "???" };
+    return {
+      badgeClass: "bg-neutral-700/10 text-neutral-400 border-neutral-700/25",
+      text: "???",
+    };
   }, [account]);
 
   return (
-    <p
+    <span
       className={cn(
-        "font-semibold flex gap-2 items-center",
-        size === "md" ? "text-md" : "text-sm",
+        "flex w-fit items-center justify-center text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full border whitespace-nowrap",
+        status.badgeClass,
+        className,
       )}
     >
-      <span className={cn("flex size-3 rounded-full", status.color)} />{" "}
       {status.text}
-    </p>
+    </span>
   );
 }

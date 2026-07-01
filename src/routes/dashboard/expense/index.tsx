@@ -117,7 +117,7 @@ function RouteComponent() {
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
-        ) : expenses?.items.length ? (
+        ) : expenses?.items?.length ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/40">

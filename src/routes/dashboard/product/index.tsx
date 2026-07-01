@@ -2,18 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowUpDown,
-  ClockFading,
-  EllipsisVertical,
-  Hourglass,
+  ChevronDown,
+  ChevronRight,
   Package,
   Plus,
   Search,
   SquarePen,
-  Tag,
-  Timer,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { NoData } from "@/components/custom/no-data";
@@ -22,6 +19,7 @@ import type { ProductEditFormSubmitData } from "@/components/forms/product-edit.
 import { ProductEditForm } from "@/components/forms/product-edit.form";
 import type { ProductVariantFormSubmitData } from "@/components/forms/product-variant.form";
 import { ProductVariantForm } from "@/components/forms/product-variant.form";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -30,12 +28,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -46,6 +38,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useGlobalAlertDialog } from "@/context-providers/alert-dialog.provider";
 import { formatRupiah } from "@/lib/currency";
 import type { TimeUnit } from "@/lib/time-converter";
@@ -99,6 +99,16 @@ function RouteComponent() {
   const [productVariantFormMode, setProductVariantFormMode] = useState<
     "CREATE" | "EDIT"
   >("CREATE");
+  const [expandedProductIds, setExpandedProductIds] = useState<
+    Record<string, boolean>
+  >({});
+
+  const toggleProductExpand = (productId: string) => {
+    setExpandedProductIds((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
+  };
 
   const { data: products, isLoading: isFetchProductLoading } = useQuery({
     queryKey: ["product", searchParam],
@@ -153,7 +163,7 @@ function RouteComponent() {
   };
 
   const handleProductEditSubmit = (value: ProductEditFormSubmitData) => {
-    productEditMutation.mutate({ id: selectedProduct!.id, payload: value });
+    productEditMutation.mutate({ id: selectedProduct?.id, payload: value });
   };
 
   const productVariantEditMutation = useMutation({
@@ -195,12 +205,12 @@ function RouteComponent() {
     };
     if (productVariantFormMode === "CREATE") {
       productVariantCreateMutation.mutate({
-        product_id: selectedProduct!.id,
+        product_id: selectedProduct?.id,
         ...payload,
       });
     } else {
       productVariantEditMutation.mutate({
-        id: selectedProductVariant!.id,
+        id: selectedProductVariant?.id,
         payload,
       });
     }
@@ -351,181 +361,216 @@ function RouteComponent() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="rounded-xl border border-border/40 shadow-sm bg-card/60 backdrop-blur-md overflow-hidden">
         {isFetchProductLoading ? (
-          <>
-            <Skeleton className="h-64 rounded-xl" />
-            <Skeleton className="h-64 rounded-xl" />
-            <Skeleton className="h-64 rounded-xl" />
-          </>
-        ) : products?.items.length ? (
-          products.items.map((product) => (
-            <Card
-              key={`product-${product.id}`}
-              className="relative overflow-hidden border-border/40 shadow-sm bg-card/60 backdrop-blur-md flex flex-col group hover:shadow-md hover:border-border/80 transition-all duration-300"
-            >
-              <div className="p-5 border-b border-border/40 flex justify-between items-center bg-muted/20">
-                <div className="flex items-center gap-2">
-                  <Package className="size-5 text-primary" />
-                  <span className="font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors">
-                    {product.name}
-                  </span>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-muted shrink-0"
-                    >
-                      <EllipsisVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-32">
-                    <DropdownMenuItem
-                      onSelect={() => handleProductSelectedEdit(product)}
-                      className="cursor-pointer"
-                    >
-                      <SquarePen className="mr-2 size-4 text-muted-foreground" />
-                      Update
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => handleDeleteProduct(product)}
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                    >
-                      <Trash2 className="mr-2 size-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="p-5 flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Tag className="size-3.5" /> Varian (
-                    {product.variants.length})
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCreateProductVariant(product)}
-                    className="h-7 px-2 text-[11px] cursor-pointer hover:bg-muted"
-                  >
-                    <Plus className="mr-1 size-3" /> Tambah
-                  </Button>
-                </div>
-
-                <div className="flex flex-col gap-3 max-h-72 overflow-y-auto pr-1">
-                  {product.variants.length > 0 ? (
-                    product.variants.map((variant) => (
-                      <div
-                        key={`variant-${variant.id}`}
-                        className="p-3 border border-border/30 rounded-lg bg-background/40 hover:bg-background/80 transition-colors flex flex-col gap-2.5"
-                      >
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="space-y-0.5 min-w-0">
-                            <span
-                              className="font-bold text-xs text-foreground block truncate"
-                              title={variant.name}
+          <div className="p-8 space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : products?.items?.length ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="w-[60px] text-center" />
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Nama Produk
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Varian
+                  </TableHead>
+                  <TableHead className="text-right text-xs font-semibold uppercase tracking-wider">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.items.map((product) => {
+                  const isExpanded = !!expandedProductIds[product.id];
+                  return (
+                    <React.Fragment key={`product-${product.id}`}>
+                      <TableRow className="hover:bg-muted/10 transition-colors">
+                        <TableCell className="w-[60px] text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 cursor-pointer"
+                            onClick={() => toggleProductExpand(product.id)}
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="size-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="size-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </TableCell>
+                        <TableCell className="font-bold text-sm text-foreground py-4">
+                          <div className="flex items-center gap-2">
+                            <Package className="size-4.5 text-primary shrink-0" />
+                            <span>{product.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] font-mono px-2 py-0.5"
+                          >
+                            {product.variants.length} Varian
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs cursor-pointer"
+                              onClick={() =>
+                                handleCreateProductVariant(product)
+                              }
                             >
-                              {variant.name}
-                            </span>
-                            <span className="text-xs font-semibold text-primary block">
-                              {variant.base_price
-                                ? formatRupiah(
-                                    Number.parseInt(variant.base_price, 10),
-                                  )
-                                : "Rp 0"}
-                            </span>
+                              <Plus className="size-3.5 mr-1" />
+                              Tambah Varian
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs cursor-pointer"
+                              onClick={() => handleProductSelectedEdit(product)}
+                            >
+                              <SquarePen className="size-3.5 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteProduct(product)}
+                              className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
                           </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 hover:bg-muted shrink-0"
-                              >
-                                <EllipsisVertical className="size-3.5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-32">
-                              <DropdownMenuItem
-                                onSelect={() =>
-                                  handleProductVariantSelectedEdit(variant)
-                                }
-                                className="cursor-pointer text-xs"
-                              >
-                                <SquarePen className="mr-2 size-3.5 text-muted-foreground" />
-                                Update
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={() =>
-                                  handleDeleteProductVariant(
-                                    product.name,
-                                    variant,
-                                  )
-                                }
-                                className="text-destructive focus:text-destructive cursor-pointer text-xs"
-                              >
-                                <Trash2 className="mr-2 size-3.5" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2 border-t border-border/20 pt-2 text-[10px]">
-                          <div className="space-y-0.5">
-                            <span className="text-muted-foreground block font-medium">
-                              Durasi
-                            </span>
-                            <span className="font-bold text-foreground flex items-center gap-1">
-                              <Timer className="size-3 text-muted-foreground" />
-                              {variant.duration}{" "}
-                              {getTimeUnitSymbol(
-                                variant.duration_unit as TimeUnit,
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow className="bg-muted/5 hover:bg-muted/5">
+                          <TableCell colSpan={4} className="p-0">
+                            <div className="px-6 py-4 border-t border-border/20 bg-muted/10 animate-in fade-in slide-in-from-top-1 duration-200">
+                              {product.variants.length > 0 ? (
+                                <div className="border border-border/30 rounded-lg overflow-hidden bg-background/50">
+                                  <Table>
+                                    <TableHeader className="bg-muted/30">
+                                      <TableRow>
+                                        <TableHead className="text-[10px] font-bold uppercase tracking-wider py-2">
+                                          Nama Varian
+                                        </TableHead>
+                                        <TableHead className="text-[10px] font-bold uppercase tracking-wider py-2">
+                                          Harga Dasar
+                                        </TableHead>
+                                        <TableHead className="text-[10px] font-bold uppercase tracking-wider py-2">
+                                          Durasi
+                                        </TableHead>
+                                        <TableHead className="text-[10px] font-bold uppercase tracking-wider py-2">
+                                          Interval
+                                        </TableHead>
+                                        <TableHead className="text-[10px] font-bold uppercase tracking-wider py-2">
+                                          Cooldown
+                                        </TableHead>
+                                        <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider py-2">
+                                          Aksi
+                                        </TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {product.variants.map((variant) => (
+                                        <TableRow
+                                          key={variant.id}
+                                          className="hover:bg-muted/10"
+                                        >
+                                          <TableCell className="font-semibold text-xs py-2">
+                                            {variant.name}
+                                          </TableCell>
+                                          <TableCell className="font-bold text-xs text-primary py-2">
+                                            {variant.base_price
+                                              ? formatRupiah(
+                                                  Number.parseInt(
+                                                    variant.base_price,
+                                                    10,
+                                                  ),
+                                                )
+                                              : "Rp 0"}
+                                          </TableCell>
+                                          <TableCell className="text-xs py-2 font-mono">
+                                            {variant.duration}{" "}
+                                            {getTimeUnitSymbol(
+                                              variant.duration_unit as TimeUnit,
+                                            )}
+                                          </TableCell>
+                                          <TableCell className="text-xs py-2 font-mono">
+                                            {variant.interval}{" "}
+                                            {getTimeUnitSymbol(
+                                              variant.interval_unit as TimeUnit,
+                                            )}
+                                          </TableCell>
+                                          <TableCell className="text-xs py-2 font-mono">
+                                            {variant.cooldown}{" "}
+                                            {getTimeUnitSymbol(
+                                              variant.cooldown_unit as TimeUnit,
+                                            )}
+                                          </TableCell>
+                                          <TableCell className="text-right py-2">
+                                            <div className="flex gap-2 justify-end">
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-7 px-2 text-[10px] cursor-pointer"
+                                                onClick={() =>
+                                                  handleProductVariantSelectedEdit(
+                                                    variant,
+                                                  )
+                                                }
+                                              >
+                                                <SquarePen className="size-3 mr-1" />
+                                                Edit
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                  handleDeleteProductVariant(
+                                                    product.name,
+                                                    variant,
+                                                  )
+                                                }
+                                                className="h-7 px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                                              >
+                                                <Trash2 className="size-3" />
+                                              </Button>
+                                            </div>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              ) : (
+                                <div className="text-center py-4 text-xs text-muted-foreground italic">
+                                  Belum ada varian produk. Klik "Tambah Varian"
+                                  untuk membuat varian baru.
+                                </div>
                               )}
-                            </span>
-                          </div>
-                          <div className="space-y-0.5">
-                            <span className="text-muted-foreground block font-medium">
-                              Interval
-                            </span>
-                            <span className="font-bold text-foreground flex items-center gap-1">
-                              <ClockFading className="size-3 text-muted-foreground" />
-                              {variant.interval}{" "}
-                              {getTimeUnitSymbol(
-                                variant.interval_unit as TimeUnit,
-                              )}
-                            </span>
-                          </div>
-                          <div className="space-y-0.5">
-                            <span className="text-muted-foreground block font-medium">
-                              Cooldown
-                            </span>
-                            <span className="font-bold text-foreground flex items-center gap-1">
-                              <Hourglass className="size-3 text-muted-foreground" />
-                              {variant.cooldown}{" "}
-                              {getTimeUnitSymbol(
-                                variant.cooldown_unit as TimeUnit,
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-6 text-center text-xs text-muted-foreground bg-muted/10 border border-dashed border-border/40 rounded-lg">
-                      Belum ada varian produk.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
-          <div className="col-span-full">
+          <div className="py-12">
             <NoData>Produk tidak ditemukan</NoData>
           </div>
         )}

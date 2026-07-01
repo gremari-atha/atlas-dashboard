@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import {
   Blocks,
+  Bot,
   FileText,
   HandCoins,
   House,
@@ -79,6 +80,7 @@ const navGroups = [
   {
     title: "System",
     items: [
+      { title: "BOT", url: "/dashboard/bot", icon: Bot },
       { title: "Logs", url: "/dashboard/logs", icon: FileText },
       { title: "Email Subject", url: "/dashboard/email-subject", icon: Mail },
       { title: "Email Message", url: "/dashboard/email-message", icon: Mails },
@@ -88,7 +90,10 @@ const navGroups = [
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: ({ context }) => {
-    if (!context.auth?.isAuthenticated) {
+    const isAuthed =
+      context.auth?.isAuthenticated ||
+      (typeof window !== "undefined" && !!localStorage.getItem("auth.tenant"));
+    if (!isAuthed) {
       throw redirect({ to: "/login" });
     }
   },
@@ -97,6 +102,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function RouteComponent() {
   const auth = useAuth();
+  const navigate = Route.useNavigate();
   const { pathname } = useLocation();
   const { theme, setTheme } = useTheme();
 
@@ -106,6 +112,7 @@ function RouteComponent() {
 
   const handleLogout = () => {
     auth.logout();
+    navigate({ to: "/login" });
   };
 
   return (

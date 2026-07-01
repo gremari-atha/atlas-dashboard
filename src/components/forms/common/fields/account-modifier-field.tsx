@@ -44,22 +44,24 @@ export function AccountModifierField() {
   };
   const handleChange = (id: string, value: ModifierObject | null) => {
     const index = accountModifier.findIndex((item) => item.modifier_id === id);
+    const newModifiers = [...accountModifier];
 
     if (index !== -1) {
       if (value) {
-        // replace
-        accountModifier[index] = value;
+        if (JSON.stringify(newModifiers[index]) !== JSON.stringify(value)) {
+          newModifiers[index] = value;
+          field.handleChange(newModifiers);
+        }
       } else {
-        // delete
-        accountModifier.splice(index, 1);
+        newModifiers.splice(index, 1);
+        field.handleChange(newModifiers);
       }
     } else {
       if (value) {
-        // insert
-        accountModifier.push(value);
+        newModifiers.push(value);
+        field.handleChange(newModifiers);
       }
     }
-    field.handleChange(accountModifier);
   };
 
   return (

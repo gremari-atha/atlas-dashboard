@@ -99,21 +99,23 @@ export const getAllProduct: GetAllServiceFn<Product, ProductFilter> = async (
     ? (data.data as Array<any>).map((p) => ({
         id: p.id,
         name: p.name,
-        variants: p.variants.map((v: any) => {
-          const [duration, duration_unit] = largestWholeUnit(v.duration);
-          const [interval, interval_unit] = largestWholeUnit(v.interval);
-          const [cooldown, cooldown_unit] = largestWholeUnit(v.cooldown);
+        variants: p.variants
+          ? p.variants.map((v: any) => {
+              const [duration, duration_unit] = largestWholeUnit(v.duration);
+              const [interval, interval_unit] = largestWholeUnit(v.interval);
+              const [cooldown, cooldown_unit] = largestWholeUnit(v.cooldown);
 
-          return {
-            ...v,
-            duration,
-            duration_unit,
-            interval,
-            interval_unit,
-            cooldown,
-            cooldown_unit,
-          };
-        }),
+              return {
+                ...v,
+                duration,
+                duration_unit,
+                interval,
+                interval_unit,
+                cooldown,
+                cooldown_unit,
+              };
+            })
+          : [],
       }))
     : [];
 
@@ -176,10 +178,17 @@ export const getProductById = async (
 export const createNewProduct = async (
   payload: CreateProductPayload,
 ): Promise<Product> => {
+  const convertedPayload = {
+    ...payload,
+    variants: payload.variants.map((v) => ({
+      ...v,
+      base_price: Number(v.base_price),
+    })),
+  };
   const response = await apiFetch("/product/with-variant", undefined, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(convertedPayload),
   });
 
   if (!response.ok) {
@@ -196,10 +205,14 @@ export const createNewProduct = async (
 export const createNewProductVariant = async (
   payload: CreateProductVariantPayload,
 ): Promise<ProductVariant> => {
+  const convertedPayload = {
+    ...payload,
+    base_price: Number(payload.base_price),
+  };
   const response = await apiFetch("/product-variant", undefined, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(convertedPayload),
   });
 
   if (!response.ok) {
@@ -238,13 +251,18 @@ export const updateProductVariant = async (
   productVariantId: string,
   payload: UpdateProductVariantPayload,
 ): Promise<ProductVariant> => {
+  const convertedPayload = {
+    ...payload,
+    base_price:
+      payload.base_price !== undefined ? Number(payload.base_price) : undefined,
+  };
   const response = await apiFetch(
     `/product-variant/${productVariantId}`,
     undefined,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(convertedPayload),
     },
   );
 

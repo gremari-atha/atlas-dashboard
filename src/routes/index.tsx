@@ -2,7 +2,10 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   beforeLoad: ({ context }) => {
-    if (context.auth?.tenant) {
+    const isAuthed =
+      context.auth?.tenant ||
+      (typeof window !== "undefined" && !!localStorage.getItem("auth.tenant"));
+    if (isAuthed) {
       throw redirect({
         to: "/dashboard",
       });
