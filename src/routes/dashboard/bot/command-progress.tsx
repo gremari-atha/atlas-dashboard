@@ -6,9 +6,11 @@ import {
   Loader2,
   Sparkles,
   Terminal,
+  XCircle,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,9 +31,13 @@ import {
 } from "@/components/ui/select";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { formatDateIdStandard } from "@/lib/time-converter";
+import { dispatchTask } from "@/services/account.service";
 
 const SearchParamsSchema = z.object({
   commandId: z.string(),
+  module: z.string().optional(),
+  type: z.string().optional(),
+  payload: z.string().optional(),
 });
 
 export const Route = createFileRoute("/dashboard/bot/command-progress")({
@@ -52,7 +58,7 @@ interface InputRequest {
 }
 
 function RouteComponent() {
-  const { commandId } = Route.useSearch();
+  const { commandId, module, type, payload } = Route.useSearch();
   const { isConnected: isWsConnected, subscribe, send } = useWebSocket();
 
   const [logs, setLogs] = useState<CommandStepLog[]>([]);
@@ -60,8 +66,45 @@ function RouteComponent() {
   const [textInputValue, setTextInputValue] = useState("");
   const [selectInputValue, setSelectInputValue] = useState("");
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
+  const [taskStatus, setTaskStatus] = useState<
+    "PENDING" | "COMPLETED" | "FAILED"
+  >("PENDING");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isDispatching, setIsDispatching] = useState(
+    !!(module && type && payload),
+  );
 
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const dispatchStarted = useRef(false);
+
+  // Dispatch the command once WebSocket is connected to prevent race conditions
+  useEffect(() => {
+    if (
+      isWsConnected &&
+      module &&
+      type &&
+      payload &&
+      !dispatchStarted.current
+    ) {
+      dispatchStarted.current = true;
+      dispatchTask(commandId, {
+        module,
+        type,
+        executeAt: new Date().toISOString(),
+        maxRetries: 0,
+        payload,
+      })
+        .then(() => {
+          setIsDispatching(false);
+        })
+        .catch((err: any) => {
+          setIsDispatching(false);
+          setIsTaskCompleted(true);
+          setTaskStatus("FAILED");
+          setErrorMessage(err.message || "Failed to dispatch task");
+        });
+    }
+  }, [isWsConnected, commandId, module, type, payload]);
 
   // Subscribe to real-time status & events for this command
   useEffect(() => {
@@ -96,6 +139,10 @@ function RouteComponent() {
       // Handle task completion events
       if (message.event === "task-done") {
         setIsTaskCompleted(true);
+        setTaskStatus(message.status === "FAILED" ? "FAILED" : "COMPLETED");
+        if (message.error_message) {
+          setErrorMessage(message.error_message);
+        }
         setInputRequest(null);
       }
     });
@@ -181,6 +228,12 @@ function RouteComponent() {
                 [{formatDateIdStandard(new Date()).split(" ")[1]}] [SYSTEM]
                 Memulai pemantauan tugas {commandId}...
               </div>
+              {isDispatching && (
+                <div className="flex items-center gap-2 text-slate-500 py-2">
+                  <Loader2 className="size-3 animate-spin text-primary" />
+                  <span>Mengirim perintah ke bot...</span>
+                </div>
+              )}
               {logs.map((log, idx) => (
                 <div key={idx} className="leading-relaxed break-all">
                   <span className="text-slate-500 mr-2">
@@ -195,19 +248,32 @@ function RouteComponent() {
                   <span className="text-slate-100">{log.message}</span>
                 </div>
               ))}
-              {!isTaskCompleted && !inputRequest && (
+              {!isDispatching && !isTaskCompleted && !inputRequest && (
                 <div className="flex items-center gap-2 text-slate-500 py-2">
                   <Loader2 className="size-3 animate-spin text-primary" />
                   <span>Menunggu progres berikutnya dari bot...</span>
                 </div>
               )}
-              {isTaskCompleted && (
+              {isTaskCompleted && taskStatus === "COMPLETED" && (
                 <div className="flex items-center gap-2 text-emerald-400 font-semibold py-2">
                   <CheckCircle2 className="size-3.5" />
                   <span>
                     Tugas selesai dijalankan! Anda dapat kembali ke halaman
                     akun.
                   </span>
+                </div>
+              )}
+              {isTaskCompleted && taskStatus === "FAILED" && (
+                <div className="flex flex-col gap-1 py-2">
+                  <div className="flex items-center gap-2 text-rose-400 font-semibold">
+                    <XCircle className="size-3.5" />
+                    <span>Tugas gagal dijalankan!</span>
+                  </div>
+                  {errorMessage && (
+                    <span className="text-slate-400 text-[10px] pl-5.5">
+                      Detail: {errorMessage}
+                    </span>
+                  )}
                 </div>
               )}
               <div ref={logsEndRef} />
@@ -340,19 +406,46 @@ function RouteComponent() {
             </Card>
           ) : (
             <Card className="border-border/40 shadow-sm bg-card/60 backdrop-blur-md p-6 text-center flex flex-col items-center gap-3">
-              {isTaskCompleted ? (
+              {isDispatching ? (
                 <>
-                  <CheckCircle2 className="size-10 text-emerald-500" />
+                  <Loader2 className="size-8 text-primary animate-spin" />
                   <div>
                     <CardTitle className="text-sm font-semibold">
-                      Tugas Selesai
+                      Mengirim Perintah
                     </CardTitle>
                     <CardDescription className="text-[10px] mt-1">
-                      Automasi telah diselesaikan. Seluruh langkah automasi
-                      berhasil dilewati tanpa kendala.
+                      Menghubungkan ke bot dan mengirimkan instruksi automasi...
                     </CardDescription>
                   </div>
                 </>
+              ) : isTaskCompleted ? (
+                taskStatus === "FAILED" ? (
+                  <>
+                    <XCircle className="size-10 text-rose-500" />
+                    <div>
+                      <CardTitle className="text-sm font-semibold">
+                        Tugas Gagal
+                      </CardTitle>
+                      <CardDescription className="text-[10px] mt-1">
+                        Automasi telah dihentikan karena mengalami
+                        error/penolakan dari bot.
+                      </CardDescription>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-10 text-emerald-500" />
+                    <div>
+                      <CardTitle className="text-sm font-semibold">
+                        Tugas Selesai
+                      </CardTitle>
+                      <CardDescription className="text-[10px] mt-1">
+                        Automasi telah diselesaikan. Seluruh langkah automasi
+                        berhasil dilewati tanpa kendala.
+                      </CardDescription>
+                    </div>
+                  </>
+                )
               ) : (
                 <>
                   <Loader2 className="size-8 text-primary animate-spin" />

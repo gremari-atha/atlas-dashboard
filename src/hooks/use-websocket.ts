@@ -41,31 +41,39 @@ export function useWebSocket() {
     };
 
     socket.onmessage = (event) => {
+      if (socket !== ws.current) return;
       try {
-        const message = JSON.parse(event.data);
-        let { event: eventName, data } = message;
+        const rawData = event.data;
+        if (typeof rawData !== "string") return;
 
-        // Extract real event name and data if wrapped by Go hub's BroadcastEvent
-        if (
-          eventName === "event" &&
-          data &&
-          typeof data === "object" &&
-          "eventName" in data &&
-          "payload" in data
-        ) {
-          eventName = data.eventName;
-          data = data.payload;
-        }
+        // Split messages by newline in case Go's writePump batched multiple events
+        const lines = rawData.split("\n").filter((line) => line.trim() !== "");
+        for (const line of lines) {
+          const message = JSON.parse(line);
+          let { event: eventName, data } = message;
 
-        // Notify subscribers
-        const set = listeners.current.get(eventName);
-        if (set) {
-          for (const callback of set) {
-            callback(data);
+          // Extract real event name and data if wrapped by Go hub's BroadcastEvent
+          if (
+            eventName === "event" &&
+            data &&
+            typeof data === "object" &&
+            "eventName" in data &&
+            "payload" in data
+          ) {
+            eventName = data.eventName;
+            data = data.payload;
+          }
+
+          // Notify subscribers
+          const set = listeners.current.get(eventName);
+          if (set) {
+            for (const callback of set) {
+              callback(data);
+            }
           }
         }
-      } catch (_err) {
-        // Ignore parse errors
+      } catch (err) {
+        console.error("[WS Client] Error in onmessage:", err);
       }
     };
 

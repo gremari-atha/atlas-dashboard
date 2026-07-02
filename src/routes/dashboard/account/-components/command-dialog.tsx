@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Account } from "@/services/account.service";
-import { dispatchTask } from "@/services/account.service";
 
 export function PagesAccountIndexDialogCommand({
   open,
@@ -47,30 +46,31 @@ export function PagesAccountIndexDialogCommand({
           password: selectedAccount.account_password,
         });
 
-        await dispatchTask(taskId, {
+        return {
+          taskId,
           module: "netflix",
           type: "resetPassword",
-          executeAt: new Date().toISOString(),
-          maxRetries: 0,
           payload,
-        });
-
-        return { taskId };
+        };
       }
 
       throw new Error("Unsupported command");
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["account"] });
-      toast.success("Command berhasil dikirim.");
       onOpenChange(false);
       navigate({
         to: "/dashboard/bot/command-progress",
-        search: { commandId: data.taskId },
+        search: {
+          commandId: data.taskId,
+          module: data.module,
+          type: data.type,
+          payload: data.payload,
+        },
       });
     },
     onError: (error) => {
-      toast.error(`Gagal mengeksekusi command: ${error.message}`);
+      toast.error(`Gagal menyiapkan command: ${error.message}`);
     },
   });
 

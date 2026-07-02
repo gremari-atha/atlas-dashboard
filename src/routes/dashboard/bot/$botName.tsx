@@ -79,6 +79,7 @@ function RouteComponent() {
 
   // Form states for modules CRUD
   const [moduleEdits, setModuleEdits] = useState<ModuleConfig[]>([]);
+  const [moduleSchemas, setModuleSchemas] = useState<any[]>([]);
   const [newModuleName, setNewModuleName] = useState("");
   const [newModuleType, setNewModuleType] = useState("shopee-order");
   const [newModuleInterval, setNewModuleInterval] = useState(300);
@@ -143,10 +144,13 @@ function RouteComponent() {
     const configChannel = `bot:config:${tenantId}:${botName}`;
     const unsubConfig = subscribe(
       configChannel,
-      (data: { config: AppConfig }) => {
+      (data: { config: AppConfig; metadata?: { modules: any[] } }) => {
         if (data?.config) {
           setConfig(data.config);
           setModuleEdits(data.config.modules || []);
+          if (data.metadata?.modules) {
+            setModuleSchemas(data.metadata.modules);
+          }
           // Also update status if info is present
           setBotStatus(data.config.connector?.enabled ? "ACTIVE" : "STANDBY");
         }
@@ -271,11 +275,21 @@ function RouteComponent() {
       toast.warning("Modul dengan nama ini sudah terdaftar");
       return;
     }
+
+    const schema = moduleSchemas.find((s) => s.module === newModuleType);
+    const initialConfig: any = {};
+    if (schema) {
+      for (const field of schema.fields) {
+        initialConfig[field.key] = field.defaultValue;
+      }
+    }
+
     const newModule: ModuleConfig = {
       name: newModuleName,
       module: newModuleType,
       loop_interval: newModuleInterval,
       enabled: true,
+      ...initialConfig,
     };
     setModuleEdits((prev) => [...prev, newModule]);
     setNewModuleName("");
@@ -290,6 +304,13 @@ function RouteComponent() {
   const handleUpdateModuleInterval = (name: string, val: number) => {
     setModuleEdits((prev) =>
       prev.map((m) => (m.name === name ? { ...m, loop_interval: val } : m)),
+    );
+  };
+
+  // Update a module enabled status
+  const handleUpdateModuleEnabled = (name: string, val: boolean) => {
+    setModuleEdits((prev) =>
+      prev.map((m) => (m.name === name ? { ...m, enabled: val } : m)),
     );
   };
 
@@ -329,6 +350,279 @@ function RouteComponent() {
   const getCustomKeys = (mod: ModuleConfig) => {
     const defaultKeys = ["name", "module", "loop_interval", "enabled"];
     return Object.keys(mod).filter((k) => !defaultKeys.includes(k));
+  };
+
+  const renderSchemaField = (mod: ModuleConfig, field: any) => {
+    const key = field.key;
+    const value = mod[key];
+
+    switch (field.type) {
+      case "text":
+      case "password":
+        return (
+          <div key={key} className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">
+              {field.label}
+            </Label>
+            <Input
+              type={field.type === "password" ? "password" : "text"}
+              value={value !== undefined ? String(value) : ""}
+              onChange={(e) =>
+                handleUpdateModuleConfig(mod.name, key, e.target.value)
+              }
+              className="h-8 text-xs font-mono"
+            />
+          </div>
+        );
+
+      case "textarea":
+        return (
+          <div key={key} className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">
+              {field.label}
+            </Label>
+            <textarea
+              value={value !== undefined ? String(value) : ""}
+              onChange={(e) =>
+                handleUpdateModuleConfig(mod.name, key, e.target.value)
+              }
+              className="w-full min-h-[60px] bg-background border border-border/40 rounded-md p-2 text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+        );
+
+      case "number":
+        return (
+          <div key={key} className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">
+              {field.label}
+            </Label>
+            <Input
+              type="number"
+              value={value !== undefined ? String(value) : ""}
+              onChange={(e) =>
+                handleUpdateModuleConfig(
+                  mod.name,
+                  key,
+                  e.target.value !== "" ? Number(e.target.value) : undefined,
+                )
+              }
+              className="h-8 text-xs font-mono"
+            />
+          </div>
+        );
+
+      case "boolean":
+        return (
+          <div key={key} className="flex items-center gap-2 py-1">
+            <input
+              type="checkbox"
+              id={`${mod.name}-${key}`}
+              checked={value === true}
+              onChange={(e) =>
+                handleUpdateModuleConfig(mod.name, key, e.target.checked)
+              }
+              className="size-3.5 rounded border-border"
+            />
+            <Label
+              htmlFor={`${mod.name}-${key}`}
+              className="text-xs text-foreground cursor-pointer select-none"
+            >
+              {field.label}
+            </Label>
+          </div>
+        );
+
+      case "select":
+        return (
+          <div key={key} className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">
+              {field.label}
+            </Label>
+            <Select
+              value={value !== undefined ? String(value) : ""}
+              onValueChange={(val) =>
+                handleUpdateModuleConfig(mod.name, key, val)
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Pilih..." />
+              </SelectTrigger>
+              <SelectContent>
+                {(field.options || []).map((opt: any) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="text-xs"
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+
+      case "array":
+        return (
+          <div key={key} className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label className="text-[10px] text-muted-foreground font-bold">
+                {field.label}
+              </Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentArray = (value as string[]) || [];
+                  handleUpdateModuleConfig(mod.name, key, [
+                    ...currentArray,
+                    "",
+                  ]);
+                }}
+                className="h-5 px-2 text-[9px] cursor-pointer"
+              >
+                <Plus className="size-3 mr-1" /> Tambah
+              </Button>
+            </div>
+            <div className="space-y-1.5 pl-2 border-l border-border/30">
+              {((value as string[]) || []).map((item, index) => (
+                <div key={index} className="flex gap-2 items-start">
+                  <textarea
+                    value={item || ""}
+                    onChange={(e) => {
+                      const currentArray = [...((value as string[]) || [])];
+                      currentArray[index] = e.target.value;
+                      handleUpdateModuleConfig(mod.name, key, currentArray);
+                    }}
+                    placeholder={`Item #${index + 1}...`}
+                    className="flex-1 min-h-[40px] bg-background border border-border/40 rounded-md p-2 text-xs font-mono text-foreground focus:outline-none"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const currentArray = ((value as string[]) || []).filter(
+                        (_, idx) => idx !== index,
+                      );
+                      handleUpdateModuleConfig(mod.name, key, currentArray);
+                    }}
+                    className="size-7 text-destructive/60 hover:text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 mt-1"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              ))}
+              {(!value || (value as string[]).length === 0) && (
+                <span className="text-[9px] text-muted-foreground italic block">
+                  Belum ada item yang ditambahkan.
+                </span>
+              )}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const renderFallbackEditor = (mod: ModuleConfig) => {
+    return (
+      <div className="space-y-2 pt-2 border-t border-border/20 mt-1">
+        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide block">
+          Custom Config (Fallback)
+        </span>
+        {getCustomKeys(mod).map((key) => {
+          const val = mod[key];
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <Label
+                className="text-[9px] text-foreground font-mono shrink-0 w-24 truncate"
+                title={key}
+              >
+                {key}:
+              </Label>
+              <Input
+                type={typeof val === "number" ? "number" : "text"}
+                value={String(val ?? "")}
+                onChange={(e) => {
+                  const rawVal = e.target.value;
+                  let parsedVal: any = rawVal;
+                  if (typeof val === "number") {
+                    parsedVal = Number(rawVal);
+                  } else if (
+                    val === true ||
+                    val === false ||
+                    rawVal === "true" ||
+                    rawVal === "false"
+                  ) {
+                    if (rawVal === "true") parsedVal = true;
+                    else if (rawVal === "false") parsedVal = false;
+                  }
+                  handleUpdateModuleConfig(mod.name, key, parsedVal);
+                }}
+                className="h-7 text-xs font-mono px-2 flex-1"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDeleteModuleConfig(mod.name, key)}
+                className="size-7 text-destructive/60 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+              >
+                <Trash2 className="size-3" />
+              </Button>
+            </div>
+          );
+        })}
+
+        <div className="flex gap-1.5 items-center pt-1.5 mt-1.5 border-t border-dashed border-border/20">
+          <Input
+            placeholder="Key..."
+            id={`new-key-${mod.name}`}
+            className="h-6 text-[10px] px-1.5 flex-1"
+          />
+          <Input
+            placeholder="Value..."
+            id={`new-val-${mod.name}`}
+            className="h-6 text-[10px] px-1.5 flex-1"
+          />
+          <Button
+            size="sm"
+            onClick={() => {
+              const keyEl = document.getElementById(
+                `new-key-${mod.name}`,
+              ) as HTMLInputElement;
+              const valEl = document.getElementById(
+                `new-val-${mod.name}`,
+              ) as HTMLInputElement;
+              if (keyEl && valEl) {
+                const key = keyEl.value.trim();
+                const val = valEl.value.trim();
+                if (key && val) {
+                  let parsedVal: any = val;
+                  if (!Number.isNaN(Number(val))) {
+                    parsedVal = Number(val);
+                  } else if (val.toLowerCase() === "true") {
+                    parsedVal = true;
+                  } else if (val.toLowerCase() === "false") {
+                    parsedVal = false;
+                  }
+                  handleUpdateModuleConfig(mod.name, key, parsedVal);
+                  keyEl.value = "";
+                  valEl.value = "";
+                } else {
+                  toast.warning("Nama key dan nilai harus diisi");
+                }
+              }
+            }}
+            className="h-6 px-2 text-[9px] cursor-pointer"
+          >
+            Tambah
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   // Save Config and Push via WS
@@ -425,7 +719,7 @@ function RouteComponent() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleRestart}
+            onClick={() => handleRestart(botName)}
             disabled={actionLoading.restart || botStatus === "OFFLINE"}
             className="flex-1 sm:flex-none text-xs cursor-pointer h-9 px-4 border-destructive/20 text-destructive hover:bg-destructive/5 hover:border-destructive/40"
           >
@@ -435,10 +729,10 @@ function RouteComponent() {
         </div>
       </div>
 
-      {/* Main Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Terminal logs console */}
-        <Card className="lg:col-span-7 border-border/40 shadow-sm bg-card/60 backdrop-blur-md flex flex-col min-h-[550px]">
+      {/* Main Panels (Ordered Vertically) */}
+      <div className="flex flex-col gap-6">
+        {/* Live Terminal Console (Top Card) */}
+        <Card className="border-border/40 shadow-sm bg-card/60 backdrop-blur-md flex flex-col">
           <CardHeader className="pb-3 border-b border-border/30 flex flex-row justify-between items-center space-y-0">
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
@@ -468,7 +762,7 @@ function RouteComponent() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-4 bg-slate-950 text-slate-200 font-mono text-[11px] flex-1 flex flex-col h-[400px]">
+          <CardContent className="p-4 bg-slate-950 text-slate-200 font-mono text-[11px] flex flex-col h-[400px]">
             <div className="flex justify-center mb-2">
               {hasMoreLogs && (
                 <Button
@@ -483,7 +777,7 @@ function RouteComponent() {
               )}
             </div>
 
-            <ScrollArea className="flex-1 pr-2">
+            <ScrollArea className="h-[330px] pr-2">
               <div className="space-y-1.5">
                 {logs.length > 0 ? (
                   logs.map((log) => (
@@ -516,8 +810,8 @@ function RouteComponent() {
           </CardContent>
         </Card>
 
-        {/* GUI Config Editor */}
-        <Card className="lg:col-span-5 border-border/40 shadow-sm bg-card/60 backdrop-blur-md flex flex-col min-h-[550px]">
+        {/* GUI Config Editor (Bottom Card) */}
+        <Card className="border-border/40 shadow-sm bg-card/60 backdrop-blur-md flex flex-col">
           <CardHeader className="pb-3 border-b border-border/30">
             <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
               <Settings className="size-4 text-primary" />
@@ -547,7 +841,7 @@ function RouteComponent() {
                   <h3 className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
                     General (Read-Only)
                   </h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[10px] text-muted-foreground">
                         Nama Bot
@@ -583,162 +877,87 @@ function RouteComponent() {
                   </h3>
 
                   {/* Modules List */}
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                    {moduleEdits.map((mod) => (
-                      <div
-                        key={mod.name}
-                        className="border border-border/40 bg-muted/10 rounded-lg p-3 space-y-3 flex flex-col justify-between"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="text-xs font-bold text-foreground">
-                              {mod.name}
-                            </span>
-                            <span className="text-[9px] text-muted-foreground block font-mono">
-                              Type: {mod.module}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveModule(mod.name)}
-                            className="size-7 text-destructive hover:bg-destructive/10 cursor-pointer"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label className="text-[10px] text-muted-foreground whitespace-nowrap">
-                            Interval (detik):
-                          </Label>
-                          <Input
-                            type="number"
-                            value={mod.loop_interval || 300}
-                            onChange={(e) =>
-                              handleUpdateModuleInterval(
-                                mod.name,
-                                Number(e.target.value),
-                              )
-                            }
-                            className="h-7 text-xs font-mono px-2 w-24"
-                          />
-                        </div>
+                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                    {moduleEdits.map((mod) => {
+                      const schema = moduleSchemas.find(
+                        (s) => s.module === mod.module,
+                      );
 
-                        {/* Custom Parameter Fields */}
-                        <div className="space-y-2 pt-2 border-t border-border/20 mt-1">
-                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide block">
-                            Custom Config
-                          </span>
-                          {getCustomKeys(mod).map((key) => {
-                            const val = mod[key];
-                            return (
-                              <div
-                                key={key}
-                                className="flex items-center gap-2"
-                              >
-                                <Label
-                                  className="text-[9px] text-foreground font-mono shrink-0 w-24 truncate"
-                                  title={key}
-                                >
-                                  {key}:
-                                </Label>
-                                <Input
-                                  type={
-                                    typeof val === "number" ? "number" : "text"
-                                  }
-                                  value={String(val ?? "")}
-                                  onChange={(e) => {
-                                    const rawVal = e.target.value;
-                                    let parsedVal: any = rawVal;
-                                    if (typeof val === "number") {
-                                      parsedVal = Number(rawVal);
-                                    } else if (
-                                      val === true ||
-                                      val === false ||
-                                      rawVal === "true" ||
-                                      rawVal === "false"
-                                    ) {
-                                      if (rawVal === "true") parsedVal = true;
-                                      else if (rawVal === "false")
-                                        parsedVal = false;
-                                    }
-                                    handleUpdateModuleConfig(
-                                      mod.name,
-                                      key,
-                                      parsedVal,
-                                    );
-                                  }}
-                                  className="h-7 text-xs font-mono px-2 flex-1"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    handleDeleteModuleConfig(mod.name, key)
-                                  }
-                                  className="size-7 text-destructive/60 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                                >
-                                  <Trash2 className="size-3" />
-                                </Button>
-                              </div>
-                            );
-                          })}
-
-                          {/* Form to add custom key-value parameter */}
-                          <div className="flex gap-1.5 items-center pt-1.5 mt-1.5 border-t border-dashed border-border/20">
-                            <Input
-                              placeholder="Key..."
-                              id={`new-key-${mod.name}`}
-                              className="h-6 text-[10px] px-1.5 flex-1"
-                            />
-                            <Input
-                              placeholder="Value..."
-                              id={`new-val-${mod.name}`}
-                              className="h-6 text-[10px] px-1.5 flex-1"
-                            />
+                      return (
+                        <div
+                          key={mod.name}
+                          className="border border-border/40 bg-muted/10 rounded-lg p-4 space-y-4 flex flex-col justify-between"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="text-xs font-bold text-foreground">
+                                {mod.name}
+                              </span>
+                              <span className="text-[9px] text-muted-foreground block font-mono">
+                                Type: {mod.module}
+                              </span>
+                            </div>
                             <Button
-                              size="sm"
-                              onClick={() => {
-                                const keyEl = document.getElementById(
-                                  `new-key-${mod.name}`,
-                                ) as HTMLInputElement;
-                                const valEl = document.getElementById(
-                                  `new-val-${mod.name}`,
-                                ) as HTMLInputElement;
-                                if (keyEl && valEl) {
-                                  const key = keyEl.value.trim();
-                                  const val = valEl.value.trim();
-                                  if (key && val) {
-                                    let parsedVal: any = val;
-                                    if (!Number.isNaN(Number(val))) {
-                                      parsedVal = Number(val);
-                                    } else if (val.toLowerCase() === "true") {
-                                      parsedVal = true;
-                                    } else if (val.toLowerCase() === "false") {
-                                      parsedVal = false;
-                                    }
-                                    handleUpdateModuleConfig(
-                                      mod.name,
-                                      key,
-                                      parsedVal,
-                                    );
-                                    keyEl.value = "";
-                                    valEl.value = "";
-                                  } else {
-                                    toast.warning(
-                                      "Nama key dan nilai harus diisi",
-                                    );
-                                  }
-                                }
-                              }}
-                              className="h-6 px-2 text-[9px] cursor-pointer"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveModule(mod.name)}
+                              className="size-7 text-destructive hover:bg-destructive/10 cursor-pointer"
                             >
-                              Tambah
+                              <Trash2 className="size-3.5" />
                             </Button>
                           </div>
+
+                          {/* Module enabled & interval controls */}
+                          <div className="flex flex-wrap items-center gap-4 py-1.5 px-3 bg-background/40 border border-border/20 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Label className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                Interval (detik):
+                              </Label>
+                              <Input
+                                type="number"
+                                value={mod.loop_interval || 300}
+                                onChange={(e) =>
+                                  handleUpdateModuleInterval(
+                                    mod.name,
+                                    Number(e.target.value),
+                                  )
+                                }
+                                className="h-7 text-xs font-mono px-2 w-20"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="checkbox"
+                                id={`enabled-${mod.name}`}
+                                checked={mod.enabled !== false}
+                                onChange={(e) =>
+                                  handleUpdateModuleEnabled(
+                                    mod.name,
+                                    e.target.checked,
+                                  )
+                                }
+                                className="size-3.5 rounded border-border cursor-pointer"
+                              />
+                              <Label
+                                htmlFor={`enabled-${mod.name}`}
+                                className="text-[10px] text-muted-foreground cursor-pointer select-none"
+                              >
+                                Enabled (Aktifkan Modul)
+                              </Label>
+                            </div>
+                          </div>
+
+                          {/* Dynamic Schema-based or Fallback Editor Fields */}
+                          <div className="space-y-4 pt-2 border-t border-border/20 mt-1">
+                            {schema
+                              ? schema.fields.map((field: any) =>
+                                  renderSchemaField(mod, field),
+                                )
+                              : renderFallbackEditor(mod)}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Add New Module Form */}
@@ -776,8 +995,20 @@ function RouteComponent() {
                             >
                               Shopee Order
                             </SelectItem>
+                            <SelectItem
+                              value="shopee-order-tester"
+                              className="text-xs"
+                            >
+                              Shopee Order Tester
+                            </SelectItem>
                             <SelectItem value="netflix" className="text-xs">
                               Netflix Reset
+                            </SelectItem>
+                            <SelectItem
+                              value="netflix-tester"
+                              className="text-xs"
+                            >
+                              Netflix Reset Tester
                             </SelectItem>
                           </SelectContent>
                         </Select>
