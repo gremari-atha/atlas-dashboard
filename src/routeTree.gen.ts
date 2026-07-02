@@ -10,345 +10,329 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardTransactionIndexRouteImport } from './routes/dashboard/transaction/index'
-import { Route as DashboardProductIndexRouteImport } from './routes/dashboard/product/index'
-import { Route as DashboardPlatformProductIndexRouteImport } from './routes/dashboard/platform-product/index'
-import { Route as DashboardLogsIndexRouteImport } from './routes/dashboard/logs/index'
-import { Route as DashboardExpenseIndexRouteImport } from './routes/dashboard/expense/index'
-import { Route as DashboardEmailIndexRouteImport } from './routes/dashboard/email/index'
-import { Route as DashboardEmailSubjectIndexRouteImport } from './routes/dashboard/email-subject/index'
-import { Route as DashboardEmailMessageIndexRouteImport } from './routes/dashboard/email-message/index'
-import { Route as DashboardBotIndexRouteImport } from './routes/dashboard/bot/index'
-import { Route as DashboardAccountIndexRouteImport } from './routes/dashboard/account/index'
-import { Route as DashboardTransactionCreateRouteImport } from './routes/dashboard/transaction/create'
-import { Route as DashboardProductCreateRouteImport } from './routes/dashboard/product/create'
-import { Route as DashboardPlatformProductCreateRouteImport } from './routes/dashboard/platform-product/create'
-import { Route as DashboardPlatformProductIdRouteImport } from './routes/dashboard/platform-product/$id'
-import { Route as DashboardExpenseCreateRouteImport } from './routes/dashboard/expense/create'
-import { Route as DashboardEmailCreateRouteImport } from './routes/dashboard/email/create'
-import { Route as DashboardEmailIdRouteImport } from './routes/dashboard/email/$id'
-import { Route as DashboardEmailSubjectCreateRouteImport } from './routes/dashboard/email-subject/create'
-import { Route as DashboardEmailSubjectIdRouteImport } from './routes/dashboard/email-subject/$id'
-import { Route as DashboardBotCommandProgressRouteImport } from './routes/dashboard/bot/command-progress'
-import { Route as DashboardBotBotNameRouteImport } from './routes/dashboard/bot/$botName'
-import { Route as DashboardAccountCreateRouteImport } from './routes/dashboard/account/create'
+import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as DashboardIndexRouteImport } from './routes/_dashboard/index'
+import { Route as DashboardTransactionIndexRouteImport } from './routes/_dashboard/transaction/index'
+import { Route as DashboardProductIndexRouteImport } from './routes/_dashboard/product/index'
+import { Route as DashboardPlatformProductIndexRouteImport } from './routes/_dashboard/platform-product/index'
+import { Route as DashboardLogsIndexRouteImport } from './routes/_dashboard/logs/index'
+import { Route as DashboardExpenseIndexRouteImport } from './routes/_dashboard/expense/index'
+import { Route as DashboardEmailIndexRouteImport } from './routes/_dashboard/email/index'
+import { Route as DashboardEmailSubjectIndexRouteImport } from './routes/_dashboard/email-subject/index'
+import { Route as DashboardEmailMessageIndexRouteImport } from './routes/_dashboard/email-message/index'
+import { Route as DashboardBotIndexRouteImport } from './routes/_dashboard/bot/index'
+import { Route as DashboardAccountIndexRouteImport } from './routes/_dashboard/account/index'
+import { Route as DashboardTransactionCreateRouteImport } from './routes/_dashboard/transaction/create'
+import { Route as DashboardProductCreateRouteImport } from './routes/_dashboard/product/create'
+import { Route as DashboardPlatformProductCreateRouteImport } from './routes/_dashboard/platform-product/create'
+import { Route as DashboardPlatformProductIdRouteImport } from './routes/_dashboard/platform-product/$id'
+import { Route as DashboardExpenseCreateRouteImport } from './routes/_dashboard/expense/create'
+import { Route as DashboardEmailCreateRouteImport } from './routes/_dashboard/email/create'
+import { Route as DashboardEmailIdRouteImport } from './routes/_dashboard/email/$id'
+import { Route as DashboardEmailSubjectCreateRouteImport } from './routes/_dashboard/email-subject/create'
+import { Route as DashboardEmailSubjectIdRouteImport } from './routes/_dashboard/email-subject/$id'
+import { Route as DashboardBotCommandProgressRouteImport } from './routes/_dashboard/bot/command-progress'
+import { Route as DashboardBotBotNameRouteImport } from './routes/_dashboard/bot/$botName'
+import { Route as DashboardAccountCreateRouteImport } from './routes/_dashboard/account/create'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRouteRoute = DashboardRouteRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/_dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardTransactionIndexRoute =
   DashboardTransactionIndexRouteImport.update({
     id: '/transaction/',
     path: '/transaction/',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardProductIndexRoute = DashboardProductIndexRouteImport.update({
   id: '/product/',
   path: '/product/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardPlatformProductIndexRoute =
   DashboardPlatformProductIndexRouteImport.update({
     id: '/platform-product/',
     path: '/platform-product/',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardLogsIndexRoute = DashboardLogsIndexRouteImport.update({
   id: '/logs/',
   path: '/logs/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardExpenseIndexRoute = DashboardExpenseIndexRouteImport.update({
   id: '/expense/',
   path: '/expense/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardEmailIndexRoute = DashboardEmailIndexRouteImport.update({
   id: '/email/',
   path: '/email/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardEmailSubjectIndexRoute =
   DashboardEmailSubjectIndexRouteImport.update({
     id: '/email-subject/',
     path: '/email-subject/',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardEmailMessageIndexRoute =
   DashboardEmailMessageIndexRouteImport.update({
     id: '/email-message/',
     path: '/email-message/',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardBotIndexRoute = DashboardBotIndexRouteImport.update({
   id: '/bot/',
   path: '/bot/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAccountIndexRoute = DashboardAccountIndexRouteImport.update({
   id: '/account/',
   path: '/account/',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardTransactionCreateRoute =
   DashboardTransactionCreateRouteImport.update({
     id: '/transaction/create',
     path: '/transaction/create',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardProductCreateRoute = DashboardProductCreateRouteImport.update({
   id: '/product/create',
   path: '/product/create',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardPlatformProductCreateRoute =
   DashboardPlatformProductCreateRouteImport.update({
     id: '/platform-product/create',
     path: '/platform-product/create',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardPlatformProductIdRoute =
   DashboardPlatformProductIdRouteImport.update({
     id: '/platform-product/$id',
     path: '/platform-product/$id',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardExpenseCreateRoute = DashboardExpenseCreateRouteImport.update({
   id: '/expense/create',
   path: '/expense/create',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardEmailCreateRoute = DashboardEmailCreateRouteImport.update({
   id: '/email/create',
   path: '/email/create',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardEmailIdRoute = DashboardEmailIdRouteImport.update({
   id: '/email/$id',
   path: '/email/$id',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardEmailSubjectCreateRoute =
   DashboardEmailSubjectCreateRouteImport.update({
     id: '/email-subject/create',
     path: '/email-subject/create',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardEmailSubjectIdRoute = DashboardEmailSubjectIdRouteImport.update({
   id: '/email-subject/$id',
   path: '/email-subject/$id',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardBotCommandProgressRoute =
   DashboardBotCommandProgressRouteImport.update({
     id: '/bot/command-progress',
     path: '/bot/command-progress',
-    getParentRoute: () => DashboardRouteRoute,
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardBotBotNameRoute = DashboardBotBotNameRouteImport.update({
   id: '/bot/$botName',
   path: '/bot/$botName',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAccountCreateRoute = DashboardAccountCreateRouteImport.update({
   id: '/account/create',
   path: '/account/create',
-  getParentRoute: () => DashboardRouteRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/': typeof DashboardIndexRoute
   '/login': typeof LoginRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/account/create': typeof DashboardAccountCreateRoute
-  '/dashboard/bot/$botName': typeof DashboardBotBotNameRoute
-  '/dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
-  '/dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
-  '/dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
-  '/dashboard/email/$id': typeof DashboardEmailIdRoute
-  '/dashboard/email/create': typeof DashboardEmailCreateRoute
-  '/dashboard/expense/create': typeof DashboardExpenseCreateRoute
-  '/dashboard/platform-product/$id': typeof DashboardPlatformProductIdRoute
-  '/dashboard/platform-product/create': typeof DashboardPlatformProductCreateRoute
-  '/dashboard/product/create': typeof DashboardProductCreateRoute
-  '/dashboard/transaction/create': typeof DashboardTransactionCreateRoute
-  '/dashboard/account/': typeof DashboardAccountIndexRoute
-  '/dashboard/bot/': typeof DashboardBotIndexRoute
-  '/dashboard/email-message/': typeof DashboardEmailMessageIndexRoute
-  '/dashboard/email-subject/': typeof DashboardEmailSubjectIndexRoute
-  '/dashboard/email/': typeof DashboardEmailIndexRoute
-  '/dashboard/expense/': typeof DashboardExpenseIndexRoute
-  '/dashboard/logs/': typeof DashboardLogsIndexRoute
-  '/dashboard/platform-product/': typeof DashboardPlatformProductIndexRoute
-  '/dashboard/product/': typeof DashboardProductIndexRoute
-  '/dashboard/transaction/': typeof DashboardTransactionIndexRoute
+  '/account/create': typeof DashboardAccountCreateRoute
+  '/bot/$botName': typeof DashboardBotBotNameRoute
+  '/bot/command-progress': typeof DashboardBotCommandProgressRoute
+  '/email-subject/$id': typeof DashboardEmailSubjectIdRoute
+  '/email-subject/create': typeof DashboardEmailSubjectCreateRoute
+  '/email/$id': typeof DashboardEmailIdRoute
+  '/email/create': typeof DashboardEmailCreateRoute
+  '/expense/create': typeof DashboardExpenseCreateRoute
+  '/platform-product/$id': typeof DashboardPlatformProductIdRoute
+  '/platform-product/create': typeof DashboardPlatformProductCreateRoute
+  '/product/create': typeof DashboardProductCreateRoute
+  '/transaction/create': typeof DashboardTransactionCreateRoute
+  '/account/': typeof DashboardAccountIndexRoute
+  '/bot/': typeof DashboardBotIndexRoute
+  '/email-message/': typeof DashboardEmailMessageIndexRoute
+  '/email-subject/': typeof DashboardEmailSubjectIndexRoute
+  '/email/': typeof DashboardEmailIndexRoute
+  '/expense/': typeof DashboardExpenseIndexRoute
+  '/logs/': typeof DashboardLogsIndexRoute
+  '/platform-product/': typeof DashboardPlatformProductIndexRoute
+  '/product/': typeof DashboardProductIndexRoute
+  '/transaction/': typeof DashboardTransactionIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/account/create': typeof DashboardAccountCreateRoute
-  '/dashboard/bot/$botName': typeof DashboardBotBotNameRoute
-  '/dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
-  '/dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
-  '/dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
-  '/dashboard/email/$id': typeof DashboardEmailIdRoute
-  '/dashboard/email/create': typeof DashboardEmailCreateRoute
-  '/dashboard/expense/create': typeof DashboardExpenseCreateRoute
-  '/dashboard/platform-product/$id': typeof DashboardPlatformProductIdRoute
-  '/dashboard/platform-product/create': typeof DashboardPlatformProductCreateRoute
-  '/dashboard/product/create': typeof DashboardProductCreateRoute
-  '/dashboard/transaction/create': typeof DashboardTransactionCreateRoute
-  '/dashboard/account': typeof DashboardAccountIndexRoute
-  '/dashboard/bot': typeof DashboardBotIndexRoute
-  '/dashboard/email-message': typeof DashboardEmailMessageIndexRoute
-  '/dashboard/email-subject': typeof DashboardEmailSubjectIndexRoute
-  '/dashboard/email': typeof DashboardEmailIndexRoute
-  '/dashboard/expense': typeof DashboardExpenseIndexRoute
-  '/dashboard/logs': typeof DashboardLogsIndexRoute
-  '/dashboard/platform-product': typeof DashboardPlatformProductIndexRoute
-  '/dashboard/product': typeof DashboardProductIndexRoute
-  '/dashboard/transaction': typeof DashboardTransactionIndexRoute
+  '/': typeof DashboardIndexRoute
+  '/account/create': typeof DashboardAccountCreateRoute
+  '/bot/$botName': typeof DashboardBotBotNameRoute
+  '/bot/command-progress': typeof DashboardBotCommandProgressRoute
+  '/email-subject/$id': typeof DashboardEmailSubjectIdRoute
+  '/email-subject/create': typeof DashboardEmailSubjectCreateRoute
+  '/email/$id': typeof DashboardEmailIdRoute
+  '/email/create': typeof DashboardEmailCreateRoute
+  '/expense/create': typeof DashboardExpenseCreateRoute
+  '/platform-product/$id': typeof DashboardPlatformProductIdRoute
+  '/platform-product/create': typeof DashboardPlatformProductCreateRoute
+  '/product/create': typeof DashboardProductCreateRoute
+  '/transaction/create': typeof DashboardTransactionCreateRoute
+  '/account': typeof DashboardAccountIndexRoute
+  '/bot': typeof DashboardBotIndexRoute
+  '/email-message': typeof DashboardEmailMessageIndexRoute
+  '/email-subject': typeof DashboardEmailSubjectIndexRoute
+  '/email': typeof DashboardEmailIndexRoute
+  '/expense': typeof DashboardExpenseIndexRoute
+  '/logs': typeof DashboardLogsIndexRoute
+  '/platform-product': typeof DashboardPlatformProductIndexRoute
+  '/product': typeof DashboardProductIndexRoute
+  '/transaction': typeof DashboardTransactionIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/account/create': typeof DashboardAccountCreateRoute
-  '/dashboard/bot/$botName': typeof DashboardBotBotNameRoute
-  '/dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
-  '/dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
-  '/dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
-  '/dashboard/email/$id': typeof DashboardEmailIdRoute
-  '/dashboard/email/create': typeof DashboardEmailCreateRoute
-  '/dashboard/expense/create': typeof DashboardExpenseCreateRoute
-  '/dashboard/platform-product/$id': typeof DashboardPlatformProductIdRoute
-  '/dashboard/platform-product/create': typeof DashboardPlatformProductCreateRoute
-  '/dashboard/product/create': typeof DashboardProductCreateRoute
-  '/dashboard/transaction/create': typeof DashboardTransactionCreateRoute
-  '/dashboard/account/': typeof DashboardAccountIndexRoute
-  '/dashboard/bot/': typeof DashboardBotIndexRoute
-  '/dashboard/email-message/': typeof DashboardEmailMessageIndexRoute
-  '/dashboard/email-subject/': typeof DashboardEmailSubjectIndexRoute
-  '/dashboard/email/': typeof DashboardEmailIndexRoute
-  '/dashboard/expense/': typeof DashboardExpenseIndexRoute
-  '/dashboard/logs/': typeof DashboardLogsIndexRoute
-  '/dashboard/platform-product/': typeof DashboardPlatformProductIndexRoute
-  '/dashboard/product/': typeof DashboardProductIndexRoute
-  '/dashboard/transaction/': typeof DashboardTransactionIndexRoute
+  '/_dashboard/': typeof DashboardIndexRoute
+  '/_dashboard/account/create': typeof DashboardAccountCreateRoute
+  '/_dashboard/bot/$botName': typeof DashboardBotBotNameRoute
+  '/_dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
+  '/_dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
+  '/_dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
+  '/_dashboard/email/$id': typeof DashboardEmailIdRoute
+  '/_dashboard/email/create': typeof DashboardEmailCreateRoute
+  '/_dashboard/expense/create': typeof DashboardExpenseCreateRoute
+  '/_dashboard/platform-product/$id': typeof DashboardPlatformProductIdRoute
+  '/_dashboard/platform-product/create': typeof DashboardPlatformProductCreateRoute
+  '/_dashboard/product/create': typeof DashboardProductCreateRoute
+  '/_dashboard/transaction/create': typeof DashboardTransactionCreateRoute
+  '/_dashboard/account/': typeof DashboardAccountIndexRoute
+  '/_dashboard/bot/': typeof DashboardBotIndexRoute
+  '/_dashboard/email-message/': typeof DashboardEmailMessageIndexRoute
+  '/_dashboard/email-subject/': typeof DashboardEmailSubjectIndexRoute
+  '/_dashboard/email/': typeof DashboardEmailIndexRoute
+  '/_dashboard/expense/': typeof DashboardExpenseIndexRoute
+  '/_dashboard/logs/': typeof DashboardLogsIndexRoute
+  '/_dashboard/platform-product/': typeof DashboardPlatformProductIndexRoute
+  '/_dashboard/product/': typeof DashboardProductIndexRoute
+  '/_dashboard/transaction/': typeof DashboardTransactionIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/login'
-    | '/dashboard/'
-    | '/dashboard/account/create'
-    | '/dashboard/bot/$botName'
-    | '/dashboard/bot/command-progress'
-    | '/dashboard/email-subject/$id'
-    | '/dashboard/email-subject/create'
-    | '/dashboard/email/$id'
-    | '/dashboard/email/create'
-    | '/dashboard/expense/create'
-    | '/dashboard/platform-product/$id'
-    | '/dashboard/platform-product/create'
-    | '/dashboard/product/create'
-    | '/dashboard/transaction/create'
-    | '/dashboard/account/'
-    | '/dashboard/bot/'
-    | '/dashboard/email-message/'
-    | '/dashboard/email-subject/'
-    | '/dashboard/email/'
-    | '/dashboard/expense/'
-    | '/dashboard/logs/'
-    | '/dashboard/platform-product/'
-    | '/dashboard/product/'
-    | '/dashboard/transaction/'
+    | '/account/create'
+    | '/bot/$botName'
+    | '/bot/command-progress'
+    | '/email-subject/$id'
+    | '/email-subject/create'
+    | '/email/$id'
+    | '/email/create'
+    | '/expense/create'
+    | '/platform-product/$id'
+    | '/platform-product/create'
+    | '/product/create'
+    | '/transaction/create'
+    | '/account/'
+    | '/bot/'
+    | '/email-message/'
+    | '/email-subject/'
+    | '/email/'
+    | '/expense/'
+    | '/logs/'
+    | '/platform-product/'
+    | '/product/'
+    | '/transaction/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/login'
-    | '/dashboard'
-    | '/dashboard/account/create'
-    | '/dashboard/bot/$botName'
-    | '/dashboard/bot/command-progress'
-    | '/dashboard/email-subject/$id'
-    | '/dashboard/email-subject/create'
-    | '/dashboard/email/$id'
-    | '/dashboard/email/create'
-    | '/dashboard/expense/create'
-    | '/dashboard/platform-product/$id'
-    | '/dashboard/platform-product/create'
-    | '/dashboard/product/create'
-    | '/dashboard/transaction/create'
-    | '/dashboard/account'
-    | '/dashboard/bot'
-    | '/dashboard/email-message'
-    | '/dashboard/email-subject'
-    | '/dashboard/email'
-    | '/dashboard/expense'
-    | '/dashboard/logs'
-    | '/dashboard/platform-product'
-    | '/dashboard/product'
-    | '/dashboard/transaction'
+    | '/'
+    | '/account/create'
+    | '/bot/$botName'
+    | '/bot/command-progress'
+    | '/email-subject/$id'
+    | '/email-subject/create'
+    | '/email/$id'
+    | '/email/create'
+    | '/expense/create'
+    | '/platform-product/$id'
+    | '/platform-product/create'
+    | '/product/create'
+    | '/transaction/create'
+    | '/account'
+    | '/bot'
+    | '/email-message'
+    | '/email-subject'
+    | '/email'
+    | '/expense'
+    | '/logs'
+    | '/platform-product'
+    | '/product'
+    | '/transaction'
   id:
     | '__root__'
-    | '/'
-    | '/dashboard'
+    | '/_dashboard'
     | '/login'
-    | '/dashboard/'
-    | '/dashboard/account/create'
-    | '/dashboard/bot/$botName'
-    | '/dashboard/bot/command-progress'
-    | '/dashboard/email-subject/$id'
-    | '/dashboard/email-subject/create'
-    | '/dashboard/email/$id'
-    | '/dashboard/email/create'
-    | '/dashboard/expense/create'
-    | '/dashboard/platform-product/$id'
-    | '/dashboard/platform-product/create'
-    | '/dashboard/product/create'
-    | '/dashboard/transaction/create'
-    | '/dashboard/account/'
-    | '/dashboard/bot/'
-    | '/dashboard/email-message/'
-    | '/dashboard/email-subject/'
-    | '/dashboard/email/'
-    | '/dashboard/expense/'
-    | '/dashboard/logs/'
-    | '/dashboard/platform-product/'
-    | '/dashboard/product/'
-    | '/dashboard/transaction/'
+    | '/_dashboard/'
+    | '/_dashboard/account/create'
+    | '/_dashboard/bot/$botName'
+    | '/_dashboard/bot/command-progress'
+    | '/_dashboard/email-subject/$id'
+    | '/_dashboard/email-subject/create'
+    | '/_dashboard/email/$id'
+    | '/_dashboard/email/create'
+    | '/_dashboard/expense/create'
+    | '/_dashboard/platform-product/$id'
+    | '/_dashboard/platform-product/create'
+    | '/_dashboard/product/create'
+    | '/_dashboard/transaction/create'
+    | '/_dashboard/account/'
+    | '/_dashboard/bot/'
+    | '/_dashboard/email-message/'
+    | '/_dashboard/email-subject/'
+    | '/_dashboard/email/'
+    | '/_dashboard/expense/'
+    | '/_dashboard/logs/'
+    | '/_dashboard/platform-product/'
+    | '/_dashboard/product/'
+    | '/_dashboard/transaction/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -361,185 +345,178 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteRouteImport
+    '/_dashboard': {
+      id: '/_dashboard'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_dashboard/': {
+      id: '/_dashboard/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/transaction/': {
-      id: '/dashboard/transaction/'
+    '/_dashboard/transaction/': {
+      id: '/_dashboard/transaction/'
       path: '/transaction'
-      fullPath: '/dashboard/transaction/'
+      fullPath: '/transaction/'
       preLoaderRoute: typeof DashboardTransactionIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/product/': {
-      id: '/dashboard/product/'
+    '/_dashboard/product/': {
+      id: '/_dashboard/product/'
       path: '/product'
-      fullPath: '/dashboard/product/'
+      fullPath: '/product/'
       preLoaderRoute: typeof DashboardProductIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/platform-product/': {
-      id: '/dashboard/platform-product/'
+    '/_dashboard/platform-product/': {
+      id: '/_dashboard/platform-product/'
       path: '/platform-product'
-      fullPath: '/dashboard/platform-product/'
+      fullPath: '/platform-product/'
       preLoaderRoute: typeof DashboardPlatformProductIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/logs/': {
-      id: '/dashboard/logs/'
+    '/_dashboard/logs/': {
+      id: '/_dashboard/logs/'
       path: '/logs'
-      fullPath: '/dashboard/logs/'
+      fullPath: '/logs/'
       preLoaderRoute: typeof DashboardLogsIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/expense/': {
-      id: '/dashboard/expense/'
+    '/_dashboard/expense/': {
+      id: '/_dashboard/expense/'
       path: '/expense'
-      fullPath: '/dashboard/expense/'
+      fullPath: '/expense/'
       preLoaderRoute: typeof DashboardExpenseIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email/': {
-      id: '/dashboard/email/'
+    '/_dashboard/email/': {
+      id: '/_dashboard/email/'
       path: '/email'
-      fullPath: '/dashboard/email/'
+      fullPath: '/email/'
       preLoaderRoute: typeof DashboardEmailIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email-subject/': {
-      id: '/dashboard/email-subject/'
+    '/_dashboard/email-subject/': {
+      id: '/_dashboard/email-subject/'
       path: '/email-subject'
-      fullPath: '/dashboard/email-subject/'
+      fullPath: '/email-subject/'
       preLoaderRoute: typeof DashboardEmailSubjectIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email-message/': {
-      id: '/dashboard/email-message/'
+    '/_dashboard/email-message/': {
+      id: '/_dashboard/email-message/'
       path: '/email-message'
-      fullPath: '/dashboard/email-message/'
+      fullPath: '/email-message/'
       preLoaderRoute: typeof DashboardEmailMessageIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/bot/': {
-      id: '/dashboard/bot/'
+    '/_dashboard/bot/': {
+      id: '/_dashboard/bot/'
       path: '/bot'
-      fullPath: '/dashboard/bot/'
+      fullPath: '/bot/'
       preLoaderRoute: typeof DashboardBotIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/account/': {
-      id: '/dashboard/account/'
+    '/_dashboard/account/': {
+      id: '/_dashboard/account/'
       path: '/account'
-      fullPath: '/dashboard/account/'
+      fullPath: '/account/'
       preLoaderRoute: typeof DashboardAccountIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/transaction/create': {
-      id: '/dashboard/transaction/create'
+    '/_dashboard/transaction/create': {
+      id: '/_dashboard/transaction/create'
       path: '/transaction/create'
-      fullPath: '/dashboard/transaction/create'
+      fullPath: '/transaction/create'
       preLoaderRoute: typeof DashboardTransactionCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/product/create': {
-      id: '/dashboard/product/create'
+    '/_dashboard/product/create': {
+      id: '/_dashboard/product/create'
       path: '/product/create'
-      fullPath: '/dashboard/product/create'
+      fullPath: '/product/create'
       preLoaderRoute: typeof DashboardProductCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/platform-product/create': {
-      id: '/dashboard/platform-product/create'
+    '/_dashboard/platform-product/create': {
+      id: '/_dashboard/platform-product/create'
       path: '/platform-product/create'
-      fullPath: '/dashboard/platform-product/create'
+      fullPath: '/platform-product/create'
       preLoaderRoute: typeof DashboardPlatformProductCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/platform-product/$id': {
-      id: '/dashboard/platform-product/$id'
+    '/_dashboard/platform-product/$id': {
+      id: '/_dashboard/platform-product/$id'
       path: '/platform-product/$id'
-      fullPath: '/dashboard/platform-product/$id'
+      fullPath: '/platform-product/$id'
       preLoaderRoute: typeof DashboardPlatformProductIdRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/expense/create': {
-      id: '/dashboard/expense/create'
+    '/_dashboard/expense/create': {
+      id: '/_dashboard/expense/create'
       path: '/expense/create'
-      fullPath: '/dashboard/expense/create'
+      fullPath: '/expense/create'
       preLoaderRoute: typeof DashboardExpenseCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email/create': {
-      id: '/dashboard/email/create'
+    '/_dashboard/email/create': {
+      id: '/_dashboard/email/create'
       path: '/email/create'
-      fullPath: '/dashboard/email/create'
+      fullPath: '/email/create'
       preLoaderRoute: typeof DashboardEmailCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email/$id': {
-      id: '/dashboard/email/$id'
+    '/_dashboard/email/$id': {
+      id: '/_dashboard/email/$id'
       path: '/email/$id'
-      fullPath: '/dashboard/email/$id'
+      fullPath: '/email/$id'
       preLoaderRoute: typeof DashboardEmailIdRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email-subject/create': {
-      id: '/dashboard/email-subject/create'
+    '/_dashboard/email-subject/create': {
+      id: '/_dashboard/email-subject/create'
       path: '/email-subject/create'
-      fullPath: '/dashboard/email-subject/create'
+      fullPath: '/email-subject/create'
       preLoaderRoute: typeof DashboardEmailSubjectCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/email-subject/$id': {
-      id: '/dashboard/email-subject/$id'
+    '/_dashboard/email-subject/$id': {
+      id: '/_dashboard/email-subject/$id'
       path: '/email-subject/$id'
-      fullPath: '/dashboard/email-subject/$id'
+      fullPath: '/email-subject/$id'
       preLoaderRoute: typeof DashboardEmailSubjectIdRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/bot/command-progress': {
-      id: '/dashboard/bot/command-progress'
+    '/_dashboard/bot/command-progress': {
+      id: '/_dashboard/bot/command-progress'
       path: '/bot/command-progress'
-      fullPath: '/dashboard/bot/command-progress'
+      fullPath: '/bot/command-progress'
       preLoaderRoute: typeof DashboardBotCommandProgressRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/bot/$botName': {
-      id: '/dashboard/bot/$botName'
+    '/_dashboard/bot/$botName': {
+      id: '/_dashboard/bot/$botName'
       path: '/bot/$botName'
-      fullPath: '/dashboard/bot/$botName'
+      fullPath: '/bot/$botName'
       preLoaderRoute: typeof DashboardBotBotNameRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/account/create': {
-      id: '/dashboard/account/create'
+    '/_dashboard/account/create': {
+      id: '/_dashboard/account/create'
       path: '/account/create'
-      fullPath: '/dashboard/account/create'
+      fullPath: '/account/create'
       preLoaderRoute: typeof DashboardAccountCreateRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardRoute
     }
   }
 }
 
-interface DashboardRouteRouteChildren {
+interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAccountCreateRoute: typeof DashboardAccountCreateRoute
   DashboardBotBotNameRoute: typeof DashboardBotBotNameRoute
@@ -565,7 +542,7 @@ interface DashboardRouteRouteChildren {
   DashboardTransactionIndexRoute: typeof DashboardTransactionIndexRoute
 }
 
-const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAccountCreateRoute: DashboardAccountCreateRoute,
   DashboardBotBotNameRoute: DashboardBotBotNameRoute,
@@ -591,13 +568,12 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardTransactionIndexRoute: DashboardTransactionIndexRoute,
 }
 
-const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
-  DashboardRouteRouteChildren,
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/login")({
       context.auth?.isAuthenticated ||
       (typeof window !== "undefined" && !!localStorage.getItem("auth.tenant"));
     if (isAuthed) {
-      throw redirect({ to: "/dashboard" });
+      throw redirect({ to: "/" });
     }
   },
   component: RouteComponent,
@@ -44,7 +44,7 @@ function RouteComponent() {
     onSubmit: async ({ value }) => {
       try {
         await auth.login(value.tenant_id, value.secret);
-        await navigate({ to: "/dashboard" });
+        await navigate({ to: "/" });
       } catch (error) {
         toast.error((error as Error).message);
       }
