@@ -4,6 +4,10 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 COPY . .
+
+ARG VITE_MASTER_URL
+ENV VITE_MASTER_URL=$VITE_MASTER_URL
+
 RUN bun run build
 
 # Stage 2: Serve with lightweight Nginx
