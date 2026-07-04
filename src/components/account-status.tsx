@@ -10,18 +10,18 @@ export function AccountStatus({
   className?: string;
 }) {
   const status = useMemo(() => {
-    if (account.freeze_until) {
-      return {
-        badgeClass:
-          "bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-500/25",
-        text: "Freeze",
-      };
-    }
     if (account.status === "disable") {
       return {
         badgeClass:
           "bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/25",
         text: "Disable",
+      };
+    }
+    if (account.freeze_until && new Date(account.freeze_until) > new Date()) {
+      return {
+        badgeClass:
+          "bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-500/25",
+        text: "Freeze",
       };
     }
     if (account.status === "ready" || account.status === "enabled") {
