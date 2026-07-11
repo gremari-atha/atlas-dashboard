@@ -166,6 +166,30 @@ export const disconnectEmail = async (emailId: string): Promise<void> => {
   }
 };
 
+export interface InitializeConnectionResponse {
+  email_account_id: string;
+}
+
+export const initializeConnection = async (
+  emailId: string,
+): Promise<InitializeConnectionResponse> => {
+  const response = await apiFetch("/email-connections/initialize", undefined, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email_id: emailId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = Array.isArray(errorData.message)
+      ? errorData.message[0]
+      : errorData.message;
+    throw new Error(errorMessage || "Failed to initialize connection");
+  }
+
+  return response.json();
+};
+
 export const emailService = {
   getAllEmail,
   getEmailById,
@@ -174,4 +198,5 @@ export const emailService = {
   deleteEmail,
   connectIMAP,
   disconnectEmail,
+  initializeConnection,
 };

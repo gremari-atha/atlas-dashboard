@@ -57,6 +57,7 @@ import {
   getAllEmail,
   connectIMAP,
   disconnectEmail,
+  initializeConnection,
 } from "@/services/email.service";
 import type { OrderByDirection } from "@/types/order-by.type";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -173,6 +174,23 @@ function RouteComponent() {
     },
     onSettled: () => {
       hideAlertDialog();
+    },
+  });
+
+  const initializeMutation = useMutation({
+    mutationFn: (emailId: string) => initializeConnection(emailId),
+    onSuccess: (data, emailId) => {
+      const selectedEmail = emailsData?.items.find((e) => e.id === emailId);
+      if (selectedEmail) {
+        setEmailToConnect({
+          ...selectedEmail,
+          email_account_id: data.email_account_id,
+        });
+        setStep(1);
+      }
+    },
+    onError: (error) => {
+      toast.error(`Gagal menyiapkan koneksi: ${error.message}`);
     },
   });
 
@@ -440,13 +458,18 @@ function RouteComponent() {
                           <Button
                             variant="secondary"
                             size="sm"
+                            disabled={initializeMutation.isPending}
                             onClick={() => {
-                              setEmailToConnect(email);
-                              setStep(1);
+                              if (email.email_account_id) {
+                                setEmailToConnect(email);
+                                setStep(1);
+                              } else {
+                                initializeMutation.mutate(email.id);
+                              }
                             }}
                             className="h-7 text-[10px] font-semibold px-2.5 cursor-pointer"
                           >
-                            Hubungkan
+                            {initializeMutation.isPending && initializeMutation.variables === email.id ? "Loading..." : "Hubungkan"}
                           </Button>
                         )}
 
