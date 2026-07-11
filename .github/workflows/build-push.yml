@@ -48,3 +48,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VITE_MASTER_URL=${{ secrets.VITE_MASTER_URL || 'https://api.atlasroot.net' }}
+            VITE_AGGREGATOR_URL=${{ secrets.VITE_AGGREGATOR_URL || 'https://emailagg.atlasroot.net' }}
