@@ -22,6 +22,10 @@ export interface Email {
   id: string;
   email: string;
   password?: string;
+  email_account_id?: string;
+  provider?: string;
+  status?: string;
+  last_error?: string;
 }
 
 export interface CreateEmailPayload {
@@ -121,10 +125,53 @@ export const deleteEmail = async (emailId: string): Promise<void> => {
   }
 };
 
+export interface ConnectIMAPPayload {
+  email_account_id: string;
+  host: string;
+  port: number;
+  username: string;
+  password?: string;
+  security: "ssl" | "starttls" | "none";
+}
+
+export const connectIMAP = async (
+  payload: ConnectIMAPPayload,
+): Promise<void> => {
+  const response = await apiFetch("/email/connect-imap", undefined, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = Array.isArray(errorData.message)
+      ? errorData.message[0]
+      : errorData.message;
+    throw new Error(errorMessage || "Failed to connect IMAP");
+  }
+};
+
+export const disconnectEmail = async (emailId: string): Promise<void> => {
+  const response = await apiFetch(`/email-connections/${emailId}`, undefined, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = Array.isArray(errorData.message)
+      ? errorData.message[0]
+      : errorData.message;
+    throw new Error(errorMessage || "Failed to disconnect email connection");
+  }
+};
+
 export const emailService = {
   getAllEmail,
   getEmailById,
   createNewEmail,
   updateEmail,
   deleteEmail,
+  connectIMAP,
+  disconnectEmail,
 };
