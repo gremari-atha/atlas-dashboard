@@ -180,7 +180,7 @@ function RouteComponent() {
   const initializeMutation = useMutation({
     mutationFn: (emailId: string) => initializeConnection(emailId),
     onSuccess: (data, emailId) => {
-      const selectedEmail = emailsData?.items.find((e) => e.id === emailId);
+      const selectedEmail = emails?.items.find((e) => e.id === emailId);
       if (selectedEmail) {
         setEmailToConnect({
           ...selectedEmail,
