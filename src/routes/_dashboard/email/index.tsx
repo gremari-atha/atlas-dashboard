@@ -144,6 +144,37 @@ function RouteComponent() {
     };
   }, [emailToConnect, provider, subscribe, queryClient]);
 
+  // WebSocket Subscription for Email Status Disconnections
+  useEffect(() => {
+    if (!emails?.data || !subscribe) return;
+    
+    const unsubscribes = emails.data
+      .filter((email) => email.provider)
+      .map((email) => {
+        const eventName = `${getSanitizedEmail(email.email)}:connection-status-changed`;
+        return subscribe(eventName, (data) => {
+          console.log("WebSocket event connection status changed:", data);
+          queryClient.invalidateQueries({ queryKey: ["email"] });
+          
+          if (data.data === "REAUTH_REQUIRED") {
+            toast.error(
+              `Koneksi email ${email.email} terputus! Perlu otorisasi ulang.`,
+              { duration: 10000 }
+            );
+          } else if (data.data === "CONNECTION_SUSPENDED") {
+            toast.error(
+              `Koneksi IMAP email ${email.email} ditangguhkan karena gagal login berulang kali.`,
+              { duration: 10000 }
+            );
+          }
+        });
+      });
+
+    return () => {
+      unsubscribes.forEach((unsub) => unsub());
+    };
+  }, [emails, subscribe, queryClient]);
+
   const { data: emails, isLoading: isFetchEmailLoading } = useQuery({
     queryKey: ["email", searchParam],
     queryFn: ({ signal }) => getAllEmail({ ...searchParam, signal }),
@@ -211,19 +242,66 @@ function RouteComponent() {
   };
 
   const handleDisconnectEmail = (email: Email) => {
-    showAlertDialog({
-      title: "Putuskan Koneksi Email?",
-      description: (
-        <span>
-          Apakah Anda yakin ingin memutuskan koneksi email{" "}
-          <span className="font-bold text-foreground">{email.email}</span>{" "}
-          dari aggregator?
-        </span>
-      ),
-      confirmText: "Putuskan",
-      isConfirming: disconnectMutation.isPending,
-      onConfirm: () => disconnectMutation.mutate(email.email_account_id || ""),
-    });
+    if (email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED") {
+      // Step 1: Informational Dialog about already revoked/invalid token
+      showAlertDialog({
+        title: "Putuskan Koneksi Terputus?",
+        description: (
+          <div className="space-y-2 text-xs">
+            <p>
+              Koneksi dengan provider email <span className="font-bold text-foreground">{email.email}</span> saat ini terputus (perlu otorisasi ulang).
+            </p>
+            <p>
+              Agar koneksi dapat diputus dengan bersih secara otomatis dari provider, kami menyarankan Anda untuk menghubungkan ulang ("Hubungkan Lagi") terlebih dahulu, kemudian memutuskan koneksi.
+            </p>
+            <p className="text-muted-foreground italic">
+              Namun, jika Anda sudah mencabut izin aplikasi secara manual di setelan akun Google/Microsoft Anda, Anda dapat memilih "Sudah Cabut Manual" di bawah ini.
+            </p>
+          </div>
+        ),
+        confirmText: "Sudah Cabut Manual",
+        cancelText: "Batal",
+        onConfirm: () => {
+          // Hide Step 1 dialog first
+          hideAlertDialog();
+          // Step 2: Show confirmation dialog with a delay so React transitions it cleanly
+          setTimeout(() => {
+            showAlertDialog({
+              title: "Yakin Putuskan Paksa?",
+              description: (
+                <div className="space-y-2 text-xs">
+                  <p>
+                    Pastikan Anda benar-benar telah mencabut izin akses aplikasi atlas di setelan akun Google (Security &gt; Third-party apps) atau Microsoft (App permissions).
+                  </p>
+                  <p className="font-semibold text-rose-500">
+                    Menghapus koneksi ini akan membuang kredensial yang tersimpan di sistem atlas secara permanen.
+                  </p>
+                </div>
+              ),
+              confirmText: "Yakin, Hapus Koneksi",
+              cancelText: "Batal",
+              isConfirming: disconnectMutation.isPending,
+              onConfirm: () => disconnectMutation.mutate(email.email_account_id || ""),
+            });
+          }, 150);
+        },
+      });
+    } else {
+      // Normal Disconnect Dialog for ACTIVE/other connections
+      showAlertDialog({
+        title: "Putuskan Koneksi Email?",
+        description: (
+          <span>
+            Apakah Anda yakin ingin memutuskan koneksi email{" "}
+            <span className="font-bold text-foreground">{email.email}</span>{" "}
+            dari aggregator?
+          </span>
+        ),
+        confirmText: "Putuskan",
+        isConfirming: disconnectMutation.isPending,
+        onConfirm: () => disconnectMutation.mutate(email.email_account_id || ""),
+      });
+    }
   };
 
   const handleSearchEmail = useDebouncedCallback((value: string) => {
@@ -416,13 +494,15 @@ function RouteComponent() {
                             className={`h-2 w-2 rounded-full ${
                               email.status === "ACTIVE"
                                 ? "bg-emerald-500 animate-pulse"
+                                : email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED"
+                                ? "bg-amber-500 animate-pulse"
                                 : "bg-rose-500"
                             }`}
                           />
                           <span className="capitalize">{email.provider}</span>
                           {email.status !== "ACTIVE" && (
-                            <span className="text-[10px] text-muted-foreground">
-                              ({email.status})
+                            <span className="text-[10px] font-semibold text-rose-500">
+                              ({email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED" ? "Koneksi Terputus" : email.status})
                             </span>
                           )}
                         </div>
@@ -446,14 +526,34 @@ function RouteComponent() {
                     <TableCell className="text-center py-3">
                       <div className="flex items-center justify-center gap-2">
                         {email.provider ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDisconnectEmail(email)}
-                            className="h-7 text-[10px] font-semibold border-rose-500/20 hover:border-rose-500 hover:bg-rose-500/5 text-rose-500 transition-colors px-2.5 cursor-pointer"
-                          >
-                            Putuskan
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {(email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED") && (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setEmailToConnect(email);
+                                  if (email.provider) {
+                                    setProvider(email.provider as "gmail" | "outlook" | "imap");
+                                    setStep(2);
+                                  } else {
+                                    setStep(1);
+                                  }
+                                }}
+                                className="h-7 text-[10px] font-semibold px-2.5 cursor-pointer"
+                              >
+                                Hubungkan Lagi
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDisconnectEmail(email)}
+                              className="h-7 text-[10px] font-semibold border-rose-500/20 hover:border-rose-500 hover:bg-rose-500/5 text-rose-500 transition-colors px-2.5 cursor-pointer"
+                            >
+                              Putuskan
+                            </Button>
+                          </div>
                         ) : (
                           <Button
                             variant="secondary"
