@@ -144,6 +144,11 @@ function RouteComponent() {
     };
   }, [emailToConnect, provider, subscribe, queryClient]);
 
+  const { data: emails, isLoading: isFetchEmailLoading } = useQuery({
+    queryKey: ["email", searchParam],
+    queryFn: ({ signal }) => getAllEmail({ ...searchParam, signal }),
+  });
+
   // WebSocket Subscription for Email Status Disconnections
   useEffect(() => {
     if (!emails?.data || !subscribe) return;
@@ -174,11 +179,6 @@ function RouteComponent() {
       unsubscribes.forEach((unsub) => unsub());
     };
   }, [emails, subscribe, queryClient]);
-
-  const { data: emails, isLoading: isFetchEmailLoading } = useQuery({
-    queryKey: ["email", searchParam],
-    queryFn: ({ signal }) => getAllEmail({ ...searchParam, signal }),
-  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteEmail(id),
