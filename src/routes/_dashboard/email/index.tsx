@@ -1,17 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  EllipsisVertical,
-  Plus,
-  SquarePen,
-  Trash2,
-  AlertCircle,
-  CheckCircle2,
-  Copy,
-  Check,
-  ExternalLink,
-  RefreshCw,
-} from "lucide-react";
+import { EllipsisVertical, Plus, SquarePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -50,26 +39,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGlobalAlertDialog } from "@/context-providers/alert-dialog.provider";
+import { useWebSocket } from "@/hooks/use-websocket";
 import type { Email, EmailFilter } from "@/services/email.service";
 import {
   deleteEmail,
+  disconnectEmail,
   GetEmailsParamsSchema,
   getAllEmail,
-  connectIMAP,
-  disconnectEmail,
-  initializeConnection,
 } from "@/services/email.service";
 import type { OrderByDirection } from "@/types/order-by.type";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { AGGREGATOR_URL } from "@/constants/api-url.cont";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+
+const getSanitizedEmail = (emailStr: string) => {
+  return emailStr.toLowerCase().replace(/[.@]/g, "_");
+};
 
 export const Route = createFileRoute("/_dashboard/email/")({
   component: RouteComponent,
@@ -94,10 +76,6 @@ function RouteComponent() {
 
   const { subscribe } = useWebSocket();
 
-  const getSanitizedEmail = (emailStr: string) => {
-    return emailStr.toLowerCase().replace(/[\.@]/g, "_");
-  };
-
   useEffect(() => {
     setSearchValue(searchParam.email ?? "");
     setFilter({ email: searchParam.email ?? "" });
@@ -111,7 +89,7 @@ function RouteComponent() {
   // WebSocket Subscription for Email Status Disconnections
   useEffect(() => {
     if (!emails?.data || !subscribe) return;
-    
+
     const unsubscribes = emails.data
       .filter((email) => email.provider)
       .map((email) => {
@@ -119,23 +97,25 @@ function RouteComponent() {
         return subscribe(eventName, (data) => {
           console.log("WebSocket event connection status changed:", data);
           queryClient.invalidateQueries({ queryKey: ["email"] });
-          
+
           if (data.data === "REAUTH_REQUIRED") {
             toast.error(
               `Koneksi email ${email.email} terputus! Perlu otorisasi ulang.`,
-              { duration: 10000 }
+              { duration: 10000 },
             );
           } else if (data.data === "CONNECTION_SUSPENDED") {
             toast.error(
               `Koneksi IMAP email ${email.email} ditangguhkan karena gagal login berulang kali.`,
-              { duration: 10000 }
+              { duration: 10000 },
             );
           }
         });
       });
 
     return () => {
-      unsubscribes.forEach((unsub) => unsub());
+      unsubscribes.forEach((unsub) => {
+        unsub();
+      });
     };
   }, [emails, subscribe, queryClient]);
 
@@ -167,8 +147,6 @@ function RouteComponent() {
     },
   });
 
-
-
   const handleDeleteEmail = (email: Email) => {
     showAlertDialog({
       title: "Yakin ingin menghapus Email?",
@@ -186,20 +164,29 @@ function RouteComponent() {
   };
 
   const handleDisconnectEmail = (email: Email) => {
-    if (email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED") {
+    if (
+      email.status === "REAUTH_REQUIRED" ||
+      email.status === "CONNECTION_SUSPENDED"
+    ) {
       // Step 1: Informational Dialog about already revoked/invalid token
       showAlertDialog({
         title: "Putuskan Koneksi Terputus?",
         description: (
           <div className="space-y-2 text-xs">
             <p>
-              Koneksi dengan provider email <span className="font-bold text-foreground">{email.email}</span> saat ini terputus (perlu otorisasi ulang).
+              Koneksi dengan provider email{" "}
+              <span className="font-bold text-foreground">{email.email}</span>{" "}
+              saat ini terputus (perlu otorisasi ulang).
             </p>
             <p>
-              Agar koneksi dapat diputus dengan bersih secara otomatis dari provider, kami menyarankan Anda untuk menghubungkan ulang ("Hubungkan Lagi") terlebih dahulu, kemudian memutuskan koneksi.
+              Agar koneksi dapat diputus dengan bersih secara otomatis dari
+              provider, kami menyarankan Anda untuk menghubungkan ulang
+              ("Hubungkan Lagi") terlebih dahulu, kemudian memutuskan koneksi.
             </p>
             <p className="text-muted-foreground italic">
-              Namun, jika Anda sudah mencabut izin aplikasi secara manual di setelan akun Google/Microsoft Anda, Anda dapat memilih "Sudah Cabut Manual" di bawah ini.
+              Namun, jika Anda sudah mencabut izin aplikasi secara manual di
+              setelan akun Google/Microsoft Anda, Anda dapat memilih "Sudah
+              Cabut Manual" di bawah ini.
             </p>
           </div>
         ),
@@ -215,17 +202,21 @@ function RouteComponent() {
               description: (
                 <div className="space-y-2 text-xs">
                   <p>
-                    Pastikan Anda benar-benar telah mencabut izin akses aplikasi atlas di setelan akun Google (Security &gt; Third-party apps) atau Microsoft (App permissions).
+                    Pastikan Anda benar-benar telah mencabut izin akses aplikasi
+                    atlas di setelan akun Google (Security &gt; Third-party
+                    apps) atau Microsoft (App permissions).
                   </p>
                   <p className="font-semibold text-rose-500">
-                    Menghapus koneksi ini akan membuang kredensial yang tersimpan di sistem atlas secara permanen.
+                    Menghapus koneksi ini akan membuang kredensial yang
+                    tersimpan di sistem atlas secara permanen.
                   </p>
                 </div>
               ),
               confirmText: "Yakin, Hapus Koneksi",
               cancelText: "Batal",
               isConfirming: disconnectMutation.isPending,
-              onConfirm: () => disconnectMutation.mutate(email.email_account_id || ""),
+              onConfirm: () =>
+                disconnectMutation.mutate(email.email_account_id || ""),
             });
           }, 150);
         },
@@ -243,7 +234,8 @@ function RouteComponent() {
         ),
         confirmText: "Putuskan",
         isConfirming: disconnectMutation.isPending,
-        onConfirm: () => disconnectMutation.mutate(email.email_account_id || ""),
+        onConfirm: () =>
+          disconnectMutation.mutate(email.email_account_id || ""),
       });
     }
   };
@@ -281,8 +273,6 @@ function RouteComponent() {
       replace: true,
     });
   };
-
-
 
   const getRowNumber = (index: number) => {
     const page = searchParam.page || 1;
@@ -401,15 +391,21 @@ function RouteComponent() {
                             className={`h-2 w-2 rounded-full ${
                               email.status === "ACTIVE"
                                 ? "bg-emerald-500 animate-pulse"
-                                : email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED"
-                                ? "bg-amber-500 animate-pulse"
-                                : "bg-rose-500"
+                                : email.status === "REAUTH_REQUIRED" ||
+                                    email.status === "CONNECTION_SUSPENDED"
+                                  ? "bg-amber-500 animate-pulse"
+                                  : "bg-rose-500"
                             }`}
                           />
                           <span className="capitalize">{email.provider}</span>
                           {email.status !== "ACTIVE" && (
                             <span className="text-[10px] font-semibold text-rose-500">
-                              ({email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED" ? "Koneksi Terputus" : email.status})
+                              (
+                              {email.status === "REAUTH_REQUIRED" ||
+                              email.status === "CONNECTION_SUSPENDED"
+                                ? "Koneksi Terputus"
+                                : email.status}
+                              )
                             </span>
                           )}
                         </div>
@@ -434,14 +430,18 @@ function RouteComponent() {
                       <div className="flex items-center justify-center gap-2">
                         {email.provider ? (
                           <div className="flex items-center gap-2">
-                            {(email.status === "REAUTH_REQUIRED" || email.status === "CONNECTION_SUSPENDED") && (
+                            {(email.status === "REAUTH_REQUIRED" ||
+                              email.status === "CONNECTION_SUSPENDED") && (
                               <Button
                                 variant="secondary"
                                 size="sm"
                                 asChild
                                 className="h-7 text-[10px] font-semibold px-2.5 cursor-pointer"
                               >
-                                <Link to="/email/connect/$id" params={{ id: email.id }}>
+                                <Link
+                                  to="/email/connect/$id"
+                                  params={{ id: email.id }}
+                                >
                                   Hubungkan Lagi
                                 </Link>
                               </Button>
@@ -462,7 +462,10 @@ function RouteComponent() {
                             asChild
                             className="h-7 text-[10px] font-semibold px-2.5 cursor-pointer"
                           >
-                            <Link to="/email/connect/$id" params={{ id: email.id }}>
+                            <Link
+                              to="/email/connect/$id"
+                              params={{ id: email.id }}
+                            >
                               Hubungkan
                             </Link>
                           </Button>

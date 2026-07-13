@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
   ChevronLeft,
   Copy,
-  Check,
   ExternalLink,
   RefreshCw,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -29,14 +29,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AGGREGATOR_URL } from "@/constants/api-url.cont";
+import { useWebSocket } from "@/hooks/use-websocket";
 import {
-  getEmailById,
-  initializeConnection,
   connectIMAP,
   connectResend,
+  getEmailById,
+  initializeConnection,
 } from "@/services/email.service";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { AGGREGATOR_URL } from "@/constants/api-url.cont";
+
+const getSanitizedEmail = (emailStr: string) => {
+  return emailStr.toLowerCase().replace(/[.@]/g, "_");
+};
 
 export const Route = createFileRoute("/_dashboard/email/connect/$id")({
   component: RouteComponent,
@@ -53,15 +57,21 @@ function RouteComponent() {
 
   // State
   const [step, setStep] = useState<number>(1);
-  const [provider, setProvider] = useState<"gmail" | "outlook" | "imap" | "resend" | null>(null);
+  const [provider, setProvider] = useState<
+    "gmail" | "outlook" | "imap" | "resend" | null
+  >(null);
   const [copied, setCopied] = useState<boolean>(false);
-  const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "success" | "failed">("idle");
+  const [connectionStatus, setConnectionStatus] = useState<
+    "idle" | "connecting" | "success" | "failed"
+  >("idle");
   const [connectionError, setConnectionError] = useState<string>("");
 
   // IMAP form state
   const [imapHost, setImapHost] = useState("");
   const [imapPort, setImapPort] = useState("993");
-  const [imapSecurity, setImapSecurity] = useState<"ssl" | "starttls" | "none">("ssl");
+  const [imapSecurity, setImapSecurity] = useState<"ssl" | "starttls" | "none">(
+    "ssl",
+  );
   const [imapPassword, setImapPassword] = useState("");
   const [isImapSubmitting, setIsImapSubmitting] = useState(false);
 
@@ -72,14 +82,10 @@ function RouteComponent() {
 
   const { subscribe } = useWebSocket();
 
-  const getSanitizedEmail = (emailStr: string) => {
-    return emailStr.toLowerCase().replace(/[\.@]/g, "_");
-  };
-
   // 1. Auto-Initialize Connection if missing email_account_id
   const initializeMutation = useMutation({
     mutationFn: () => initializeConnection(id),
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ["email", id] });
       queryClient.invalidateQueries({ queryKey: ["email"] });
     },
@@ -89,14 +95,20 @@ function RouteComponent() {
   });
 
   useEffect(() => {
-    if (email && !email.email_account_id && !initializeMutation.isPending && !initializeMutation.isSuccess && !initializeMutation.isError) {
+    if (
+      email &&
+      !email.email_account_id &&
+      !initializeMutation.isPending &&
+      !initializeMutation.isSuccess &&
+      !initializeMutation.isError
+    ) {
       initializeMutation.mutate();
     }
   }, [email, initializeMutation]);
 
   // 2. Pre-select provider if account has already been connected/started connect flow
   useEffect(() => {
-    if (email && email.provider) {
+    if (email?.provider) {
       setProvider(email.provider as "gmail" | "outlook" | "imap" | "resend");
       setStep(2);
       if (email.provider !== "imap" && email.provider !== "resend") {
@@ -116,7 +128,12 @@ function RouteComponent() {
 
   // 4. WebSocket Listener for success event (Gmail/Outlook)
   useEffect(() => {
-    if (!email || !email.email_account_id || (provider !== "gmail" && provider !== "outlook")) return;
+    if (
+      !email ||
+      !email.email_account_id ||
+      (provider !== "gmail" && provider !== "outlook")
+    )
+      return;
 
     const eventName = `${getSanitizedEmail(email.email)}:connection-success`;
     const unsubscribe = subscribe(eventName, (data) => {
@@ -213,7 +230,9 @@ function RouteComponent() {
             Hubungkan ke Agregator
           </h1>
           <p className="text-xs text-muted-foreground">
-            {isLoading ? "Menyiapkan sesi koneksi..." : `Atur rute email masuk untuk alamat ${email?.email}`}
+            {isLoading
+              ? "Menyiapkan sesi koneksi..."
+              : `Atur rute email masuk untuk alamat ${email?.email}`}
           </p>
         </div>
       </div>
@@ -221,18 +240,20 @@ function RouteComponent() {
       <Card className="border-border/40 shadow-sm bg-card/60 backdrop-blur-md">
         <CardHeader>
           <CardTitle className="text-sm font-semibold">
-            {step === 1 ? "Pilih Provider" : `Konfigurasi ${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : provider === "resend" ? "Resend" : "IMAP"}`}
+            {step === 1
+              ? "Pilih Provider"
+              : `Konfigurasi ${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : provider === "resend" ? "Resend" : "IMAP"}`}
           </CardTitle>
           <CardDescription className="text-xs">
-            {step === 1 
-              ? "Pilih platform email yang digunakan oleh akun Anda." 
-              : connectionStatus === "success" 
-              ? "Koneksi berhasil terjalin."
-              : provider === "imap"
-              ? "Lengkapi detail konfigurasi koneksi server IMAP."
-              : provider === "resend"
-              ? "Masukkan kredensial API dan Webhook Resend Anda."
-              : "Gunakan tautan di bawah ini untuk memberikan izin akses agregator."}
+            {step === 1
+              ? "Pilih platform email yang digunakan oleh akun Anda."
+              : connectionStatus === "success"
+                ? "Koneksi berhasil terjalin."
+                : provider === "imap"
+                  ? "Lengkapi detail konfigurasi koneksi server IMAP."
+                  : provider === "resend"
+                    ? "Masukkan kredensial API dan Webhook Resend Anda."
+                    : "Gunakan tautan di bawah ini untuk memberikan izin akses agregator."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -250,15 +271,20 @@ function RouteComponent() {
             <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center animate-in zoom-in duration-300">
               <CheckCircle2 className="size-12 text-emerald-500" />
               <div className="space-y-1">
-                <p className="text-sm font-bold text-emerald-500">Koneksi Berhasil!</p>
+                <p className="text-sm font-bold text-emerald-500">
+                  Koneksi Berhasil!
+                </p>
                 <p className="text-xs text-muted-foreground max-w-[360px] leading-relaxed">
-                  Email <span className="font-semibold text-foreground">{email.email}</span> sekarang aktif terhubung ke aggregator dan siap memproses email secara real-time.
+                  Email{" "}
+                  <span className="font-semibold text-foreground">
+                    {email.email}
+                  </span>{" "}
+                  sekarang aktif terhubung ke aggregator dan siap memproses
+                  email secara real-time.
                 </p>
               </div>
               <Button asChild size="sm" className="mt-2">
-                <Link to="/email">
-                  Kembali ke Daftar Email
-                </Link>
+                <Link to="/email">Kembali ke Daftar Email</Link>
               </Button>
             </div>
           ) : (
@@ -330,9 +356,14 @@ function RouteComponent() {
               {step === 2 && provider !== "imap" && provider !== "resend" && (
                 <div className="space-y-5 py-2 animate-in fade-in duration-300">
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold">Tautan Otorisasi ({provider === "gmail" ? "Google" : "Microsoft"})</Label>
+                    <Label className="text-xs font-semibold">
+                      Tautan Otorisasi (
+                      {provider === "gmail" ? "Google" : "Microsoft"})
+                    </Label>
                     <p className="text-[11px] text-muted-foreground leading-normal">
-                      Salin tautan di bawah ini atau klik tombol "Otorisasi" untuk membuka halaman konfirmasi akses pada profil browser tempat akun email Anda masuk.
+                      Salin tautan di bawah ini atau klik tombol "Otorisasi"
+                      untuk membuka halaman konfirmasi akses pada profil browser
+                      tempat akun email Anda masuk.
                     </p>
                     <div className="flex gap-2">
                       <Input
@@ -344,10 +375,18 @@ function RouteComponent() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        onClick={() => copyToClipboard(`${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`)}
+                        onClick={() =>
+                          copyToClipboard(
+                            `${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`,
+                          )
+                        }
                         className="h-9 shrink-0 gap-1"
                       >
-                        {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                        {copied ? (
+                          <Check className="size-3.5 text-emerald-500" />
+                        ) : (
+                          <Copy className="size-3.5" />
+                        )}
                         {copied ? "Tersalin" : "Salin"}
                       </Button>
                     </div>
@@ -356,9 +395,13 @@ function RouteComponent() {
                   <div className="flex flex-col items-center justify-center p-6 border border-dashed border-border/40 rounded-xl bg-muted/5 space-y-3">
                     <RefreshCw className="size-8 text-primary animate-spin" />
                     <div className="space-y-1 text-center">
-                      <p className="text-xs font-semibold text-foreground">Menunggu Otorisasi Agregator...</p>
+                      <p className="text-xs font-semibold text-foreground">
+                        Menunggu Otorisasi Agregator...
+                      </p>
                       <p className="text-[10px] text-muted-foreground max-w-[320px] leading-relaxed">
-                        Sistem sedang mendengarkan status koneksi baru Anda secara real-time. Halaman ini akan otomatis berganti begitu Anda menyelesaikan otorisasi.
+                        Sistem sedang mendengarkan status koneksi baru Anda
+                        secara real-time. Halaman ini akan otomatis berganti
+                        begitu Anda menyelesaikan otorisasi.
                       </p>
                     </div>
                   </div>
@@ -380,7 +423,12 @@ function RouteComponent() {
                       type="button"
                       variant="default"
                       size="sm"
-                      onClick={() => window.open(`${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`, "_blank")}
+                      onClick={() =>
+                        window.open(
+                          `${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`,
+                          "_blank",
+                        )
+                      }
                       className="gap-1.5 cursor-pointer shadow-sm"
                     >
                       Otorisasi Sekarang
@@ -396,9 +444,12 @@ function RouteComponent() {
                     <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center animate-in fade-in duration-300">
                       <RefreshCw className="size-10 text-primary animate-spin" />
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold">Menguji Koneksi IMAP...</p>
+                        <p className="text-sm font-semibold">
+                          Menguji Koneksi IMAP...
+                        </p>
                         <p className="text-xs text-muted-foreground max-w-[320px]">
-                          Sedang melakukan handshaking SSL/TLS, mencoba login ke server IMAP, dan memverifikasi kemampuan IDLE.
+                          Sedang melakukan handshaking SSL/TLS, mencoba login ke
+                          server IMAP, dan memverifikasi kemampuan IDLE.
                         </p>
                       </div>
                     </div>
@@ -408,7 +459,9 @@ function RouteComponent() {
                     <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center animate-in zoom-in duration-300">
                       <AlertCircle className="size-12 text-rose-500" />
                       <div className="space-y-1">
-                        <p className="text-sm font-bold text-rose-500">Koneksi IMAP Gagal</p>
+                        <p className="text-sm font-bold text-rose-500">
+                          Koneksi IMAP Gagal
+                        </p>
                         <p className="text-xs text-rose-500/80 bg-rose-500/5 border border-rose-500/10 p-3 rounded-lg max-w-[360px] font-mono text-[10px] break-all leading-normal text-left">
                           {connectionError}
                         </p>
@@ -425,10 +478,15 @@ function RouteComponent() {
                   )}
 
                   {connectionStatus === "idle" && (
-                    <form onSubmit={handleImapConnect} className="space-y-4 py-2 animate-in fade-in duration-300">
+                    <form
+                      onSubmit={handleImapConnect}
+                      className="space-y-4 py-2 animate-in fade-in duration-300"
+                    >
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5 col-span-2">
-                          <Label htmlFor="imap-email" className="text-xs">Email (Username)</Label>
+                          <Label htmlFor="imap-email" className="text-xs">
+                            Email (Username)
+                          </Label>
                           <Input
                             id="imap-email"
                             readOnly
@@ -438,7 +496,9 @@ function RouteComponent() {
                         </div>
 
                         <div className="space-y-1.5 col-span-2">
-                          <Label htmlFor="imap-host" className="text-xs">Server Host IMAP</Label>
+                          <Label htmlFor="imap-host" className="text-xs">
+                            Server Host IMAP
+                          </Label>
                           <Input
                             id="imap-host"
                             required
@@ -450,7 +510,9 @@ function RouteComponent() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label htmlFor="imap-security" className="text-xs">Security Protocol</Label>
+                          <Label htmlFor="imap-security" className="text-xs">
+                            Security Protocol
+                          </Label>
                           <Select
                             value={imapSecurity}
                             onValueChange={(val: any) => setImapSecurity(val)}
@@ -459,15 +521,23 @@ function RouteComponent() {
                               <SelectValue placeholder="Security" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ssl" className="text-xs">SSL/TLS (Port 993)</SelectItem>
-                              <SelectItem value="starttls" className="text-xs">STARTTLS (Port 143)</SelectItem>
-                              <SelectItem value="none" className="text-xs">None (Port 143)</SelectItem>
+                              <SelectItem value="ssl" className="text-xs">
+                                SSL/TLS (Port 993)
+                              </SelectItem>
+                              <SelectItem value="starttls" className="text-xs">
+                                STARTTLS (Port 143)
+                              </SelectItem>
+                              <SelectItem value="none" className="text-xs">
+                                None (Port 143)
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label htmlFor="imap-port" className="text-xs">Port Server</Label>
+                          <Label htmlFor="imap-port" className="text-xs">
+                            Port Server
+                          </Label>
                           <Input
                             id="imap-port"
                             required
@@ -479,7 +549,9 @@ function RouteComponent() {
                         </div>
 
                         <div className="space-y-1.5 col-span-2">
-                          <Label htmlFor="imap-password" className="text-xs">Password / Sandi Aplikasi</Label>
+                          <Label htmlFor="imap-password" className="text-xs">
+                            Password / Sandi Aplikasi
+                          </Label>
                           <Input
                             id="imap-password"
                             required
@@ -524,9 +596,12 @@ function RouteComponent() {
                     <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center animate-in fade-in duration-300">
                       <RefreshCw className="size-10 text-primary animate-spin" />
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold">Menguji Kredensial Resend...</p>
+                        <p className="text-sm font-semibold">
+                          Menguji Kredensial Resend...
+                        </p>
                         <p className="text-xs text-muted-foreground max-w-[320px]">
-                          Sedang melakukan validasi API Key dengan menghubungi server Resend.
+                          Sedang melakukan validasi API Key dengan menghubungi
+                          server Resend.
                         </p>
                       </div>
                     </div>
@@ -536,7 +611,9 @@ function RouteComponent() {
                     <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center animate-in zoom-in duration-300">
                       <AlertCircle className="size-12 text-rose-500" />
                       <div className="space-y-1">
-                        <p className="text-sm font-bold text-rose-500">Koneksi Resend Gagal</p>
+                        <p className="text-sm font-bold text-rose-500">
+                          Koneksi Resend Gagal
+                        </p>
                         <p className="text-xs text-rose-500/80 bg-rose-500/5 border border-rose-500/10 p-3 rounded-lg max-w-[360px] font-mono text-[10px] break-all leading-normal text-left">
                           {connectionError}
                         </p>
@@ -553,10 +630,15 @@ function RouteComponent() {
                   )}
 
                   {connectionStatus === "idle" && (
-                    <form onSubmit={handleResendConnect} className="space-y-4 py-2 animate-in fade-in duration-300">
+                    <form
+                      onSubmit={handleResendConnect}
+                      className="space-y-4 py-2 animate-in fade-in duration-300"
+                    >
                       <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-1.5">
-                          <Label htmlFor="resend-email" className="text-xs">Email / Domain</Label>
+                          <Label htmlFor="resend-email" className="text-xs">
+                            Email / Domain
+                          </Label>
                           <Input
                             id="resend-email"
                             readOnly
@@ -566,7 +648,9 @@ function RouteComponent() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label htmlFor="resend-api-key" className="text-xs">Resend API Key</Label>
+                          <Label htmlFor="resend-api-key" className="text-xs">
+                            Resend API Key
+                          </Label>
                           <Input
                             id="resend-api-key"
                             required
@@ -579,14 +663,21 @@ function RouteComponent() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label htmlFor="resend-webhook-secret" className="text-xs">Webhook Signing Secret (Svix)</Label>
+                          <Label
+                            htmlFor="resend-webhook-secret"
+                            className="text-xs"
+                          >
+                            Webhook Signing Secret (Svix)
+                          </Label>
                           <Input
                             id="resend-webhook-secret"
                             required
                             type="password"
                             placeholder="whsec_..."
                             value={resendWebhookSecret}
-                            onChange={(e) => setResendWebhookSecret(e.target.value)}
+                            onChange={(e) =>
+                              setResendWebhookSecret(e.target.value)
+                            }
                             className="h-9 text-xs font-mono"
                           />
                         </div>
