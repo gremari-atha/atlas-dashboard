@@ -37,7 +37,7 @@ import {
 import { useWebSocket } from "@/hooks/use-websocket";
 import { AGGREGATOR_URL } from "@/constants/api-url.cont";
 
-export const Route = createFileRoute("/_dashboard/email/$id/connect")({
+export const Route = createFileRoute("/_dashboard/email/connect/$id")({
   component: RouteComponent,
 });
 

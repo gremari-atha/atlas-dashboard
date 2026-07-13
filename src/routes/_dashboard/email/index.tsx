@@ -441,7 +441,7 @@ function RouteComponent() {
                                 asChild
                                 className="h-7 text-[10px] font-semibold px-2.5 cursor-pointer"
                               >
-                                <Link to="/email/$id/connect" params={{ id: email.id }}>
+                                <Link to="/email/connect/$id" params={{ id: email.id }}>
                                   Hubungkan Lagi
                                 </Link>
                               </Button>
@@ -462,7 +462,7 @@ function RouteComponent() {
                             asChild
                             className="h-7 text-[10px] font-semibold px-2.5 cursor-pointer"
                           >
-                            <Link to="/email/$id/connect" params={{ id: email.id }}>
+                            <Link to="/email/connect/$id" params={{ id: email.id }}>
                               Hubungkan
                             </Link>
                           </Button>

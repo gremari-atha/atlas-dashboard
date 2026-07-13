@@ -34,7 +34,7 @@ import { Route as DashboardEmailSubjectIdRouteImport } from './routes/_dashboard
 import { Route as DashboardBotCommandProgressRouteImport } from './routes/_dashboard/bot/command-progress'
 import { Route as DashboardBotBotNameRouteImport } from './routes/_dashboard/bot/$botName'
 import { Route as DashboardAccountCreateRouteImport } from './routes/_dashboard/account/create'
-import { Route as DashboardEmailIdConnectRouteImport } from './routes/_dashboard/email/$id.connect'
+import { Route as DashboardEmailConnectIdRouteImport } from './routes/_dashboard/email/connect.$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -169,10 +169,10 @@ const DashboardAccountCreateRoute = DashboardAccountCreateRouteImport.update({
   path: '/account/create',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardEmailIdConnectRoute = DashboardEmailIdConnectRouteImport.update({
-  id: '/connect',
-  path: '/connect',
-  getParentRoute: () => DashboardEmailIdRoute,
+const DashboardEmailConnectIdRoute = DashboardEmailConnectIdRouteImport.update({
+  id: '/email/connect/$id',
+  path: '/email/connect/$id',
+  getParentRoute: () => DashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -183,7 +183,7 @@ export interface FileRoutesByFullPath {
   '/bot/command-progress': typeof DashboardBotCommandProgressRoute
   '/email-subject/$id': typeof DashboardEmailSubjectIdRoute
   '/email-subject/create': typeof DashboardEmailSubjectCreateRoute
-  '/email/$id': typeof DashboardEmailIdRouteWithChildren
+  '/email/$id': typeof DashboardEmailIdRoute
   '/email/create': typeof DashboardEmailCreateRoute
   '/expense/create': typeof DashboardExpenseCreateRoute
   '/platform-product/$id': typeof DashboardPlatformProductIdRoute
@@ -200,7 +200,7 @@ export interface FileRoutesByFullPath {
   '/platform-product/': typeof DashboardPlatformProductIndexRoute
   '/product/': typeof DashboardProductIndexRoute
   '/transaction/': typeof DashboardTransactionIndexRoute
-  '/email/$id/connect': typeof DashboardEmailIdConnectRoute
+  '/email/connect/$id': typeof DashboardEmailConnectIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -210,7 +210,7 @@ export interface FileRoutesByTo {
   '/bot/command-progress': typeof DashboardBotCommandProgressRoute
   '/email-subject/$id': typeof DashboardEmailSubjectIdRoute
   '/email-subject/create': typeof DashboardEmailSubjectCreateRoute
-  '/email/$id': typeof DashboardEmailIdRouteWithChildren
+  '/email/$id': typeof DashboardEmailIdRoute
   '/email/create': typeof DashboardEmailCreateRoute
   '/expense/create': typeof DashboardExpenseCreateRoute
   '/platform-product/$id': typeof DashboardPlatformProductIdRoute
@@ -227,7 +227,7 @@ export interface FileRoutesByTo {
   '/platform-product': typeof DashboardPlatformProductIndexRoute
   '/product': typeof DashboardProductIndexRoute
   '/transaction': typeof DashboardTransactionIndexRoute
-  '/email/$id/connect': typeof DashboardEmailIdConnectRoute
+  '/email/connect/$id': typeof DashboardEmailConnectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -239,7 +239,7 @@ export interface FileRoutesById {
   '/_dashboard/bot/command-progress': typeof DashboardBotCommandProgressRoute
   '/_dashboard/email-subject/$id': typeof DashboardEmailSubjectIdRoute
   '/_dashboard/email-subject/create': typeof DashboardEmailSubjectCreateRoute
-  '/_dashboard/email/$id': typeof DashboardEmailIdRouteWithChildren
+  '/_dashboard/email/$id': typeof DashboardEmailIdRoute
   '/_dashboard/email/create': typeof DashboardEmailCreateRoute
   '/_dashboard/expense/create': typeof DashboardExpenseCreateRoute
   '/_dashboard/platform-product/$id': typeof DashboardPlatformProductIdRoute
@@ -256,7 +256,7 @@ export interface FileRoutesById {
   '/_dashboard/platform-product/': typeof DashboardPlatformProductIndexRoute
   '/_dashboard/product/': typeof DashboardProductIndexRoute
   '/_dashboard/transaction/': typeof DashboardTransactionIndexRoute
-  '/_dashboard/email/$id/connect': typeof DashboardEmailIdConnectRoute
+  '/_dashboard/email/connect/$id': typeof DashboardEmailConnectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -285,7 +285,7 @@ export interface FileRouteTypes {
     | '/platform-product/'
     | '/product/'
     | '/transaction/'
-    | '/email/$id/connect'
+    | '/email/connect/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -312,7 +312,7 @@ export interface FileRouteTypes {
     | '/platform-product'
     | '/product'
     | '/transaction'
-    | '/email/$id/connect'
+    | '/email/connect/$id'
   id:
     | '__root__'
     | '/_dashboard'
@@ -340,7 +340,7 @@ export interface FileRouteTypes {
     | '/_dashboard/platform-product/'
     | '/_dashboard/product/'
     | '/_dashboard/transaction/'
-    | '/_dashboard/email/$id/connect'
+    | '/_dashboard/email/connect/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -525,26 +525,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAccountCreateRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/email/$id/connect': {
-      id: '/_dashboard/email/$id/connect'
-      path: '/connect'
-      fullPath: '/email/$id/connect'
-      preLoaderRoute: typeof DashboardEmailIdConnectRouteImport
-      parentRoute: typeof DashboardEmailIdRoute
+    '/_dashboard/email/connect/$id': {
+      id: '/_dashboard/email/connect/$id'
+      path: '/email/connect/$id'
+      fullPath: '/email/connect/$id'
+      preLoaderRoute: typeof DashboardEmailConnectIdRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }
-
-interface DashboardEmailIdRouteChildren {
-  DashboardEmailIdConnectRoute: typeof DashboardEmailIdConnectRoute
-}
-
-const DashboardEmailIdRouteChildren: DashboardEmailIdRouteChildren = {
-  DashboardEmailIdConnectRoute: DashboardEmailIdConnectRoute,
-}
-
-const DashboardEmailIdRouteWithChildren =
-  DashboardEmailIdRoute._addFileChildren(DashboardEmailIdRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -553,7 +542,7 @@ interface DashboardRouteChildren {
   DashboardBotCommandProgressRoute: typeof DashboardBotCommandProgressRoute
   DashboardEmailSubjectIdRoute: typeof DashboardEmailSubjectIdRoute
   DashboardEmailSubjectCreateRoute: typeof DashboardEmailSubjectCreateRoute
-  DashboardEmailIdRoute: typeof DashboardEmailIdRouteWithChildren
+  DashboardEmailIdRoute: typeof DashboardEmailIdRoute
   DashboardEmailCreateRoute: typeof DashboardEmailCreateRoute
   DashboardExpenseCreateRoute: typeof DashboardExpenseCreateRoute
   DashboardPlatformProductIdRoute: typeof DashboardPlatformProductIdRoute
@@ -570,6 +559,7 @@ interface DashboardRouteChildren {
   DashboardPlatformProductIndexRoute: typeof DashboardPlatformProductIndexRoute
   DashboardProductIndexRoute: typeof DashboardProductIndexRoute
   DashboardTransactionIndexRoute: typeof DashboardTransactionIndexRoute
+  DashboardEmailConnectIdRoute: typeof DashboardEmailConnectIdRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -579,7 +569,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBotCommandProgressRoute: DashboardBotCommandProgressRoute,
   DashboardEmailSubjectIdRoute: DashboardEmailSubjectIdRoute,
   DashboardEmailSubjectCreateRoute: DashboardEmailSubjectCreateRoute,
-  DashboardEmailIdRoute: DashboardEmailIdRouteWithChildren,
+  DashboardEmailIdRoute: DashboardEmailIdRoute,
   DashboardEmailCreateRoute: DashboardEmailCreateRoute,
   DashboardExpenseCreateRoute: DashboardExpenseCreateRoute,
   DashboardPlatformProductIdRoute: DashboardPlatformProductIdRoute,
@@ -596,6 +586,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardPlatformProductIndexRoute: DashboardPlatformProductIndexRoute,
   DashboardProductIndexRoute: DashboardProductIndexRoute,
   DashboardTransactionIndexRoute: DashboardTransactionIndexRoute,
+  DashboardEmailConnectIdRoute: DashboardEmailConnectIdRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
