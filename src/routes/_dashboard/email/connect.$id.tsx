@@ -33,6 +33,7 @@ import {
   getEmailById,
   initializeConnection,
   connectIMAP,
+  connectResend,
 } from "@/services/email.service";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { AGGREGATOR_URL } from "@/constants/api-url.cont";
@@ -52,7 +53,7 @@ function RouteComponent() {
 
   // State
   const [step, setStep] = useState<number>(1);
-  const [provider, setProvider] = useState<"gmail" | "outlook" | "imap" | null>(null);
+  const [provider, setProvider] = useState<"gmail" | "outlook" | "imap" | "resend" | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "success" | "failed">("idle");
   const [connectionError, setConnectionError] = useState<string>("");
@@ -63,6 +64,11 @@ function RouteComponent() {
   const [imapSecurity, setImapSecurity] = useState<"ssl" | "starttls" | "none">("ssl");
   const [imapPassword, setImapPassword] = useState("");
   const [isImapSubmitting, setIsImapSubmitting] = useState(false);
+
+  // Resend form state
+  const [resendApiKey, setResendApiKey] = useState("");
+  const [resendWebhookSecret, setResendWebhookSecret] = useState("");
+  const [isResendSubmitting, setIsResendSubmitting] = useState(false);
 
   const { subscribe } = useWebSocket();
 
@@ -91,9 +97,9 @@ function RouteComponent() {
   // 2. Pre-select provider if account has already been connected/started connect flow
   useEffect(() => {
     if (email && email.provider) {
-      setProvider(email.provider as "gmail" | "outlook" | "imap");
+      setProvider(email.provider as "gmail" | "outlook" | "imap" | "resend");
       setStep(2);
-      if (email.provider !== "imap") {
+      if (email.provider !== "imap" && email.provider !== "resend") {
         setConnectionStatus("connecting");
       }
     }
@@ -164,6 +170,34 @@ function RouteComponent() {
     }
   };
 
+  const handleResendConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.email_account_id) return;
+
+    setIsResendSubmitting(true);
+    setConnectionStatus("connecting");
+    setConnectionError("");
+
+    try {
+      await connectResend({
+        email_account_id: email.email_account_id,
+        api_key: resendApiKey,
+        webhook_secret: resendWebhookSecret,
+      });
+
+      setConnectionStatus("success");
+      toast.success("Koneksi Resend berhasil terhubung!");
+      queryClient.invalidateQueries({ queryKey: ["email", id] });
+      queryClient.invalidateQueries({ queryKey: ["email"] });
+    } catch (err: any) {
+      console.error("Resend connection error:", err);
+      setConnectionStatus("failed");
+      setConnectionError(err.message || "Gagal menghubungkan Resend");
+    } finally {
+      setIsResendSubmitting(false);
+    }
+  };
+
   const isLoading = isFetchEmailLoading || initializeMutation.isPending;
 
   return (
@@ -187,7 +221,7 @@ function RouteComponent() {
       <Card className="border-border/40 shadow-sm bg-card/60 backdrop-blur-md">
         <CardHeader>
           <CardTitle className="text-sm font-semibold">
-            {step === 1 ? "Pilih Provider" : `Konfigurasi ${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : "IMAP"}`}
+            {step === 1 ? "Pilih Provider" : `Konfigurasi ${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : provider === "resend" ? "Resend" : "IMAP"}`}
           </CardTitle>
           <CardDescription className="text-xs">
             {step === 1 
@@ -196,6 +230,8 @@ function RouteComponent() {
               ? "Koneksi berhasil terjalin."
               : provider === "imap"
               ? "Lengkapi detail konfigurasi koneksi server IMAP."
+              : provider === "resend"
+              ? "Masukkan kredensial API dan Webhook Resend Anda."
               : "Gunakan tautan di bawah ini untuk memberikan izin akses agregator."}
           </CardDescription>
         </CardHeader>
@@ -228,7 +264,7 @@ function RouteComponent() {
           ) : (
             <>
               {step === 1 && (
-                <div className="grid grid-cols-3 gap-4 py-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -273,10 +309,25 @@ function RouteComponent() {
                     </div>
                     <span className="text-xs font-semibold">IMAP</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProvider("resend");
+                      setStep(2);
+                      setConnectionStatus("idle");
+                    }}
+                    className="flex flex-col items-center justify-center p-6 border border-border/40 hover:border-primary/50 hover:bg-primary/5 rounded-xl transition-all gap-3 group cursor-pointer"
+                  >
+                    <div className="size-12 flex items-center justify-center bg-teal-500/10 text-teal-500 rounded-lg group-hover:scale-105 transition-transform font-bold text-base">
+                      R
+                    </div>
+                    <span className="text-xs font-semibold">Resend</span>
+                  </button>
                 </div>
               )}
 
-              {step === 2 && provider !== "imap" && (
+              {step === 2 && provider !== "imap" && provider !== "resend" && (
                 <div className="space-y-5 py-2 animate-in fade-in duration-300">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold">Tautan Otorisasi ({provider === "gmail" ? "Google" : "Microsoft"})</Label>
@@ -460,6 +511,106 @@ function RouteComponent() {
                           className="gap-1.5 cursor-pointer shadow-sm"
                         >
                           Test & Hubungkan
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </>
+              )}
+
+              {step === 2 && provider === "resend" && (
+                <>
+                  {connectionStatus === "connecting" && (
+                    <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center animate-in fade-in duration-300">
+                      <RefreshCw className="size-10 text-primary animate-spin" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">Menguji Kredensial Resend...</p>
+                        <p className="text-xs text-muted-foreground max-w-[320px]">
+                          Sedang melakukan validasi API Key dengan menghubungi server Resend.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {connectionStatus === "failed" && (
+                    <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center animate-in zoom-in duration-300">
+                      <AlertCircle className="size-12 text-rose-500" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-rose-500">Koneksi Resend Gagal</p>
+                        <p className="text-xs text-rose-500/80 bg-rose-500/5 border border-rose-500/10 p-3 rounded-lg max-w-[360px] font-mono text-[10px] break-all leading-normal text-left">
+                          {connectionError}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => setConnectionStatus("idle")}
+                        className="mt-2 cursor-pointer"
+                      >
+                        Coba Lagi
+                      </Button>
+                    </div>
+                  )}
+
+                  {connectionStatus === "idle" && (
+                    <form onSubmit={handleResendConnect} className="space-y-4 py-2 animate-in fade-in duration-300">
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="resend-email" className="text-xs">Email / Domain</Label>
+                          <Input
+                            id="resend-email"
+                            readOnly
+                            value={email.email}
+                            className="h-9 text-xs bg-muted/40 font-mono"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="resend-api-key" className="text-xs">Resend API Key</Label>
+                          <Input
+                            id="resend-api-key"
+                            required
+                            type="password"
+                            placeholder="re_xxxxxxxxx"
+                            value={resendApiKey}
+                            onChange={(e) => setResendApiKey(e.target.value)}
+                            className="h-9 text-xs font-mono"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="resend-webhook-secret" className="text-xs">Webhook Signing Secret (Svix)</Label>
+                          <Input
+                            id="resend-webhook-secret"
+                            required
+                            type="password"
+                            placeholder="whsec_..."
+                            value={resendWebhookSecret}
+                            onChange={(e) => setResendWebhookSecret(e.target.value)}
+                            className="h-9 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center gap-3 pt-3 border-t border-border/30">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setStep(1);
+                            setProvider(null);
+                          }}
+                        >
+                          Kembali
+                        </Button>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={isResendSubmitting}
+                          className="gap-1.5 cursor-pointer shadow-sm"
+                        >
+                          Verifikasi & Hubungkan
                         </Button>
                       </div>
                     </form>

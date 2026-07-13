@@ -190,6 +190,30 @@ export const initializeConnection = async (
   return response.json();
 };
 
+export interface ConnectResendPayload {
+  email_account_id: string;
+  api_key: string;
+  webhook_secret: string;
+}
+
+export const connectResend = async (
+  payload: ConnectResendPayload,
+): Promise<void> => {
+  const response = await apiFetch("/email/connect-resend", undefined, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = Array.isArray(errorData.message)
+      ? errorData.message[0]
+      : errorData.message;
+    throw new Error(errorMessage || "Gagal menghubungkan Resend");
+  }
+};
+
 export const emailService = {
   getAllEmail,
   getEmailById,
@@ -199,4 +223,5 @@ export const emailService = {
   connectIMAP,
   disconnectEmail,
   initializeConnection,
+  connectResend,
 };
