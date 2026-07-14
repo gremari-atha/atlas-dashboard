@@ -995,20 +995,8 @@ function RouteComponent() {
                             >
                               Shopee Order
                             </SelectItem>
-                            <SelectItem
-                              value="shopee-order-tester"
-                              className="text-xs"
-                            >
-                              Shopee Order Tester
-                            </SelectItem>
                             <SelectItem value="netflix" className="text-xs">
-                              Netflix Reset
-                            </SelectItem>
-                            <SelectItem
-                              value="netflix-tester"
-                              className="text-xs"
-                            >
-                              Netflix Reset Tester
+                              Netflix
                             </SelectItem>
                           </SelectContent>
                         </Select>
