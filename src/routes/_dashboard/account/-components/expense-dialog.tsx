@@ -109,7 +109,7 @@ export function PagesAccountIndexDialogExpense({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="md:min-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Pengeluaran Akun</DialogTitle>
           <DialogDescription>{selectedAccount?.email.email}</DialogDescription>

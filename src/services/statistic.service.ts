@@ -41,11 +41,18 @@ interface PeakHourStatistic {
   transaction_count: number;
 }
 
+export interface TodayStatistic {
+  net_income: number;
+  expense: number;
+  transaction_count: number;
+}
+
 export interface AllStatistic {
   revenue: RevenueStatistic;
   product: Array<ProductSalesStatistic>;
   platform: Array<PlatformStatistic>;
   peakHour: Array<PeakHourStatistic>;
+  today: TodayStatistic;
 }
 
 export const getAllStatistic = async (
@@ -61,9 +68,14 @@ export const getAllStatistic = async (
     throw new Error(errorMessage || "Failed to fetch all statistic");
   }
 
-  const data = (await response.json()) as AllStatistic;
+  const data = (await response.json()) as any;
   return {
     ...data,
+    today: {
+      net_income: Number.parseInt(data.today?.net_income as any || "0", 10),
+      expense: Number.parseInt(data.today?.expense as any || "0", 10),
+      transaction_count: Number.parseInt(data.today?.transaction_count as any || "0", 10),
+    },
     revenue: {
       period: {
         ...data.revenue.period,
@@ -72,7 +84,7 @@ export const getAllStatistic = async (
         created_at: new Date(data.revenue.period.created_at),
         updated_at: new Date(data.revenue.period.updated_at),
       },
-      daily: data.revenue.daily.map((item) => ({
+      daily: data.revenue.daily.map((item: any) => ({
         ...item,
         net_income: Number.parseInt(item.net_income as any, 10),
         expense: Number.parseInt(item.expense as any, 10),

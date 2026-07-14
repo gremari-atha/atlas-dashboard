@@ -591,7 +591,7 @@ function RouteComponent() {
         open={dialogProductEditOpen}
         onOpenChange={setDialogProductEditOpen}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-foreground">
               Ubah Produk
@@ -612,7 +612,7 @@ function RouteComponent() {
         open={dialogProductVariantOpen}
         onOpenChange={setDialogProductVariantOpen}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-foreground">
               {productVariantFormMode === "CREATE"

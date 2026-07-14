@@ -105,20 +105,11 @@ function RouteComponent() {
     });
   }, 500);
 
-  const handleContextChange = (value: string) => {
-    const context = value === "all" ? undefined : value;
-    navigate({
-      search: (prev) => ({ ...prev, context, page: 1 }),
-      replace: true,
-    });
-  };
-
   const handleClearFilter = () => {
     navigate({
       search: (prev) => ({
         ...prev,
         subject: undefined,
-        context: undefined,
         page: 1,
       }),
       replace: true,
@@ -186,40 +177,6 @@ function RouteComponent() {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto shrink-0 flex-wrap">
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <SlidersHorizontal className="size-4 text-muted-foreground hidden sm:inline" />
-              <Select
-                value={searchParam.context ?? "all"}
-                onValueChange={handleContextChange}
-              >
-                <SelectTrigger className="w-full sm:w-48 bg-background/50">
-                  <SelectValue placeholder="Semua Context" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Context</SelectItem>
-                  <SelectItem value="NETFLIX_SIGNIN_OTP">
-                    NETFLIX_SIGNIN_OTP
-                  </SelectItem>
-                  <SelectItem value="NETFLIX_REQ_RESET_PASSWORD">
-                    NETFLIX_REQ_RESET_PASSWORD
-                  </SelectItem>
-                  <SelectItem value="NETFLIX_TRAVEL_OTP">
-                    NETFLIX_TRAVEL_OTP
-                  </SelectItem>
-                  <SelectItem value="NETFLIX_HOUSE_CHANGE">
-                    NETFLIX_HOUSE_CHANGE
-                  </SelectItem>
-                  <SelectItem value="NETFLIX_VERIFY_EMAIL">
-                    NETFLIX_VERIFY_EMAIL
-                  </SelectItem>
-                  <SelectItem value="NETFLIX_CANCELLATION">
-                    NETFLIX_CANCELLATION
-                  </SelectItem>
-                  <SelectItem value="NETFLIX_MFA">NETFLIX_MFA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <Button
               variant="outline"
               onClick={handleClearFilter}
@@ -261,9 +218,6 @@ function RouteComponent() {
                     Subject
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Context
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
                     Extract Method
                   </TableHead>
                   <TableHead className="text-right text-xs font-semibold uppercase tracking-wider">
@@ -282,14 +236,6 @@ function RouteComponent() {
                       title={subject.subject}
                     >
                       {subject.subject}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] py-0.5 px-2 font-mono"
-                      >
-                        {subject.context}
-                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge

@@ -105,6 +105,33 @@ function RouteComponent() {
         <div className="flex flex-col gap-6 relative z-10">
           {allStatistic?.revenue && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Card Penghasilan Hari Ini */}
+              <Card className="shadow-sm border border-emerald-500/20 dark:border-emerald-500/10 bg-gradient-to-br from-card/85 to-card/45 backdrop-blur-md hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all duration-300">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Penghasilan Hari Ini
+                  </CardTitle>
+                  <CardDescription className="text-[10px]">
+                    Hari Ini (Waktu Jakarta)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-2xl font-bold tracking-tight text-emerald-500">
+                        {formatRupiah(allStatistic.today.net_income)}
+                      </span>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Total {allStatistic.today.transaction_count} transaksi
+                      </span>
+                    </div>
+                    <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-500 shadow-inner">
+                      <TrendingUp className="size-5" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Card Penghasilan Bersih */}
               <Card className="shadow-sm border border-primary/20 dark:border-primary/10 bg-gradient-to-br from-card/85 to-card/45 backdrop-blur-md hover:shadow-[0_0_20px_rgba(2,207,233,0.1)] transition-all duration-300">
                 <CardHeader className="pb-2">

@@ -125,9 +125,6 @@ function RouteComponent() {
                     Subject
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Context
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
                     Hasil Ekstraksi (OTP / Link)
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">
@@ -160,14 +157,6 @@ function RouteComponent() {
                       title={emailMessage.subject}
                     >
                       {emailMessage.subject}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] py-0.5 px-2 font-mono"
-                      >
-                        {emailMessage.parsed_context}
-                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 max-w-xs">

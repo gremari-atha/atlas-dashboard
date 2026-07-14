@@ -4,7 +4,7 @@ import type { Email } from "@/services/email.service";
 
 export const EmailFormSchema = z.object({
   email: z.string().email("Email tidak valid").min(1, "Email wajib diisi"),
-  password: z.string(),
+  password: z.string().optional(),
 });
 
 export type EmailFormSubmitData = z.infer<typeof EmailFormSchema>;
@@ -29,7 +29,7 @@ export function EmailForm({
     onSubmit: ({ value }) => {
       onSubmit({
         email: value.email,
-        password: value.password,
+        password: value.password?.trim() || undefined,
       });
     },
   });

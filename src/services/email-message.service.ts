@@ -25,7 +25,6 @@ export interface EmailMessage {
   from_email: string;
   subject: string;
   email_date: Date;
-  parsed_context: string;
   parsed_data: string;
   created_at: Date;
   updated_at: Date;
