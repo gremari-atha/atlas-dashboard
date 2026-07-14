@@ -218,6 +218,9 @@ function RouteComponent() {
                     Subject
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Context
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
                     Extract Method
                   </TableHead>
                   <TableHead className="text-right text-xs font-semibold uppercase tracking-wider">
@@ -236,6 +239,9 @@ function RouteComponent() {
                       title={subject.subject}
                     >
                       {subject.subject}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono">
+                      {subject.context || "-"}
                     </TableCell>
                     <TableCell>
                       <Badge

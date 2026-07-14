@@ -9,6 +9,7 @@ import { BaseQueryParamsSchema } from "@/types/get-all-service.type";
 
 export const EmailSubjectFilterSchema = z.object({
   subject: z.string().optional(),
+  context: z.string().optional(),
 });
 
 export type EmailSubjectFilter = z.infer<typeof EmailSubjectFilterSchema>;
@@ -24,16 +25,19 @@ export type GetEmailSubjectsParams = z.infer<
 export interface EmailSubject {
   id: string;
   subject: string;
+  context: string | null;
   extract_method: string;
 }
 
 export interface CreateEmailSubjectPayload {
   subject: string;
+  context?: string | null;
   extract_method: string;
 }
 
 export interface UpdateEmailSubjectPayload {
   subject?: string;
+  context?: string | null;
   extract_method?: string;
 }
 

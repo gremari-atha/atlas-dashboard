@@ -4,6 +4,7 @@ import type { EmailSubject } from "@/services/email-subject.service";
 
 export const EmailSubjectFormSchema = z.object({
   subject: z.string().min(1, "Subject wajib diisi"),
+  context: z.string().optional(),
   extract_method: z.string().min(1, "Extract method wajib diisi"),
 });
 
@@ -24,10 +25,15 @@ export function EmailSubjectForm({
     validators: { onSubmit: EmailSubjectFormSchema },
     defaultValues: {
       subject: initialData?.subject ?? "",
+      context: initialData?.context ?? "",
       extract_method: initialData?.extract_method ?? "",
     },
     onSubmit: ({ value }) => {
-      onSubmit(value);
+      onSubmit({
+        subject: value.subject,
+        context: value.context?.trim() || null,
+        extract_method: value.extract_method,
+      });
     },
   });
 
@@ -51,6 +57,15 @@ export function EmailSubjectForm({
               <field.TextField
                 label="Subject"
                 placeholder="Masukkan email subject..."
+              />
+            )}
+          </form.AppField>
+
+          <form.AppField name="context">
+            {(field) => (
+              <field.TextField
+                label="Context (Opsional)"
+                placeholder="Masukkan context untuk bot..."
               />
             )}
           </form.AppField>
