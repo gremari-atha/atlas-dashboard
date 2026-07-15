@@ -32,6 +32,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AGGREGATOR_URL } from "@/constants/api-url.cont";
 import { useWebSocket } from "@/hooks/use-websocket";
 import {
+  connectCloudflare,
   connectIMAP,
   connectResend,
   getEmailById,
@@ -58,7 +59,7 @@ function RouteComponent() {
   // State
   const [step, setStep] = useState<number>(1);
   const [provider, setProvider] = useState<
-    "gmail" | "outlook" | "imap" | "resend" | null
+    "gmail" | "outlook" | "imap" | "resend" | "cloudflare" | null
   >(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<
@@ -79,6 +80,10 @@ function RouteComponent() {
   const [resendApiKey, setResendApiKey] = useState("");
   const [resendWebhookSecret, setResendWebhookSecret] = useState("");
   const [isResendSubmitting, setIsResendSubmitting] = useState(false);
+
+  // Cloudflare form state
+  const [cfToken, setCfToken] = useState("");
+  const [isCfSubmitting, setIsCfSubmitting] = useState(false);
 
   const { subscribe } = useWebSocket();
 
@@ -109,9 +114,20 @@ function RouteComponent() {
   // 2. Pre-select provider if account has already been connected/started connect flow
   useEffect(() => {
     if (email?.provider) {
-      setProvider(email.provider as "gmail" | "outlook" | "imap" | "resend");
+      setProvider(
+        email.provider as
+          | "gmail"
+          | "outlook"
+          | "imap"
+          | "resend"
+          | "cloudflare",
+      );
       setStep(2);
-      if (email.provider !== "imap" && email.provider !== "resend") {
+      if (
+        email.provider !== "imap" &&
+        email.provider !== "resend" &&
+        email.provider !== "cloudflare"
+      ) {
         setConnectionStatus("connecting");
       }
     }
@@ -215,6 +231,33 @@ function RouteComponent() {
     }
   };
 
+  const handleCloudflareConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.email_account_id) return;
+
+    setIsCfSubmitting(true);
+    setConnectionStatus("connecting");
+    setConnectionError("");
+
+    try {
+      await connectCloudflare({
+        email_account_id: email.email_account_id,
+        token: cfToken,
+      });
+
+      setConnectionStatus("success");
+      toast.success("Koneksi Cloudflare berhasil terhubung!");
+      queryClient.invalidateQueries({ queryKey: ["email", id] });
+      queryClient.invalidateQueries({ queryKey: ["email"] });
+    } catch (err: any) {
+      console.error("Cloudflare connection error:", err);
+      setConnectionStatus("failed");
+      setConnectionError(err.message || "Gagal menghubungkan Cloudflare");
+    } finally {
+      setIsCfSubmitting(false);
+    }
+  };
+
   const isLoading = isFetchEmailLoading || initializeMutation.isPending;
 
   return (
@@ -242,7 +285,7 @@ function RouteComponent() {
           <CardTitle className="text-sm font-semibold">
             {step === 1
               ? "Pilih Provider"
-              : `Konfigurasi ${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : provider === "resend" ? "Resend" : "IMAP"}`}
+              : `Konfigurasi ${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : provider === "resend" ? "Resend" : provider === "cloudflare" ? "Cloudflare" : "IMAP"}`}
           </CardTitle>
           <CardDescription className="text-xs">
             {step === 1
@@ -253,7 +296,9 @@ function RouteComponent() {
                   ? "Lengkapi detail konfigurasi koneksi server IMAP."
                   : provider === "resend"
                     ? "Masukkan kredensial API dan Webhook Resend Anda."
-                    : "Gunakan tautan di bawah ini untuk memberikan izin akses agregator."}
+                    : provider === "cloudflare"
+                      ? "Masukkan kredensial token untuk Worker Cloudflare."
+                      : "Gunakan tautan di bawah ini untuk memberikan izin akses agregator."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -290,7 +335,7 @@ function RouteComponent() {
           ) : (
             <>
               {step === 1 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 py-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -350,93 +395,111 @@ function RouteComponent() {
                     </div>
                     <span className="text-xs font-semibold">Resend</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProvider("cloudflare");
+                      setStep(2);
+                      setConnectionStatus("idle");
+                    }}
+                    className="flex flex-col items-center justify-center p-6 border border-border/40 hover:border-primary/50 hover:bg-primary/5 rounded-xl transition-all gap-3 group cursor-pointer"
+                  >
+                    <div className="size-12 flex items-center justify-center bg-orange-500/10 text-orange-500 rounded-lg group-hover:scale-105 transition-transform font-bold text-base">
+                      CF
+                    </div>
+                    <span className="text-xs font-semibold">Cloudflare</span>
+                  </button>
                 </div>
               )}
 
-              {step === 2 && provider !== "imap" && provider !== "resend" && (
-                <div className="space-y-5 py-2 animate-in fade-in duration-300">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold">
-                      Tautan Otorisasi (
-                      {provider === "gmail" ? "Google" : "Microsoft"})
-                    </Label>
-                    <p className="text-[11px] text-muted-foreground leading-normal">
-                      Salin tautan di bawah ini atau klik tombol "Otorisasi"
-                      untuk membuka halaman konfirmasi akses pada profil browser
-                      tempat akun email Anda masuk.
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        readOnly
-                        value={`${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`}
-                        className="flex-1 h-9 text-[10px] bg-muted/30 border-border/40 font-mono"
-                      />
+              {step === 2 &&
+                provider !== "imap" &&
+                provider !== "resend" &&
+                provider !== "cloudflare" && (
+                  <div className="space-y-5 py-2 animate-in fade-in duration-300">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold">
+                        Tautan Otorisasi (
+                        {provider === "gmail" ? "Google" : "Microsoft"})
+                      </Label>
+                      <p className="text-[11px] text-muted-foreground leading-normal">
+                        Salin tautan di bawah ini atau klik tombol "Otorisasi"
+                        untuk membuka halaman konfirmasi akses pada profil
+                        browser tempat akun email Anda masuk.
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          readOnly
+                          value={`${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`}
+                          className="flex-1 h-9 text-[10px] bg-muted/30 border-border/40 font-mono"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            copyToClipboard(
+                              `${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`,
+                            )
+                          }
+                          className="h-9 shrink-0 gap-1"
+                        >
+                          {copied ? (
+                            <Check className="size-3.5 text-emerald-500" />
+                          ) : (
+                            <Copy className="size-3.5" />
+                          )}
+                          {copied ? "Tersalin" : "Salin"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center p-6 border border-dashed border-border/40 rounded-xl bg-muted/5 space-y-3">
+                      <RefreshCw className="size-8 text-primary animate-spin" />
+                      <div className="space-y-1 text-center">
+                        <p className="text-xs font-semibold text-foreground">
+                          Menunggu Otorisasi Agregator...
+                        </p>
+                        <p className="text-[10px] text-muted-foreground max-w-[320px] leading-relaxed">
+                          Sistem sedang mendengarkan status koneksi baru Anda
+                          secara real-time. Halaman ini akan otomatis berganti
+                          begitu Anda menyelesaikan otorisasi.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center gap-3 pt-3 border-t border-border/30">
                       <Button
                         type="button"
+                        variant="ghost"
                         size="sm"
-                        variant="outline"
+                        onClick={() => {
+                          setStep(1);
+                          setProvider(null);
+                          setConnectionStatus("idle");
+                        }}
+                      >
+                        Pilih Provider Lain
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
                         onClick={() =>
-                          copyToClipboard(
+                          window.open(
                             `${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`,
+                            "_blank",
                           )
                         }
-                        className="h-9 shrink-0 gap-1"
+                        className="gap-1.5 cursor-pointer shadow-sm"
                       >
-                        {copied ? (
-                          <Check className="size-3.5 text-emerald-500" />
-                        ) : (
-                          <Copy className="size-3.5" />
-                        )}
-                        {copied ? "Tersalin" : "Salin"}
+                        Otorisasi Sekarang
+                        <ExternalLink className="size-3.5" />
                       </Button>
                     </div>
                   </div>
-
-                  <div className="flex flex-col items-center justify-center p-6 border border-dashed border-border/40 rounded-xl bg-muted/5 space-y-3">
-                    <RefreshCw className="size-8 text-primary animate-spin" />
-                    <div className="space-y-1 text-center">
-                      <p className="text-xs font-semibold text-foreground">
-                        Menunggu Otorisasi Agregator...
-                      </p>
-                      <p className="text-[10px] text-muted-foreground max-w-[320px] leading-relaxed">
-                        Sistem sedang mendengarkan status koneksi baru Anda
-                        secara real-time. Halaman ini akan otomatis berganti
-                        begitu Anda menyelesaikan otorisasi.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center gap-3 pt-3 border-t border-border/30">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setStep(1);
-                        setProvider(null);
-                        setConnectionStatus("idle");
-                      }}
-                    >
-                      Pilih Provider Lain
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      onClick={() =>
-                        window.open(
-                          `${AGGREGATOR_URL}/oauth/${provider}/connect?email_id=${email.email_account_id || ""}`,
-                          "_blank",
-                        )
-                      }
-                      className="gap-1.5 cursor-pointer shadow-sm"
-                    >
-                      Otorisasi Sekarang
-                      <ExternalLink className="size-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+                )}
 
               {step === 2 && provider === "imap" && (
                 <>
@@ -702,6 +765,104 @@ function RouteComponent() {
                           className="gap-1.5 cursor-pointer shadow-sm"
                         >
                           Verifikasi & Hubungkan
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </>
+              )}
+
+              {step === 2 && provider === "cloudflare" && (
+                <>
+                  {connectionStatus === "connecting" && (
+                    <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center animate-in fade-in duration-300">
+                      <RefreshCw className="size-10 text-primary animate-spin" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">
+                          Menghubungkan ke Cloudflare...
+                        </p>
+                        <p className="text-xs text-muted-foreground max-w-[320px]">
+                          Sedang menyimpan kredensial token validasi Anda.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {connectionStatus === "failed" && (
+                    <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center animate-in zoom-in duration-300">
+                      <AlertCircle className="size-12 text-rose-500" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-rose-500">
+                          Koneksi Cloudflare Gagal
+                        </p>
+                        <p className="text-xs text-rose-500/80 bg-rose-500/5 border border-rose-500/10 p-3 rounded-lg max-w-[360px] font-mono text-[10px] break-all leading-normal text-left">
+                          {connectionError}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => setConnectionStatus("idle")}
+                        className="mt-2 cursor-pointer"
+                      >
+                        Coba Lagi
+                      </Button>
+                    </div>
+                  )}
+
+                  {connectionStatus === "idle" && (
+                    <form
+                      onSubmit={handleCloudflareConnect}
+                      className="space-y-4 py-2 animate-in fade-in duration-300"
+                    >
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="cf-email" className="text-xs">
+                            Email / Destination Domain
+                          </Label>
+                          <Input
+                            id="cf-email"
+                            readOnly
+                            value={email.email}
+                            className="h-9 text-xs bg-muted/40 font-mono"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="cf-token" className="text-xs">
+                            Validation Webhook Token
+                          </Label>
+                          <Input
+                            id="cf-token"
+                            required
+                            type="password"
+                            placeholder="Masukkan token rahasia yang sama dengan di Worker"
+                            value={cfToken}
+                            onChange={(e) => setCfToken(e.target.value)}
+                            className="h-9 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center gap-3 pt-3 border-t border-border/30">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setStep(1);
+                            setProvider(null);
+                          }}
+                        >
+                          Kembali
+                        </Button>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={isCfSubmitting}
+                          className="gap-1.5 cursor-pointer shadow-sm"
+                        >
+                          Hubungkan Cloudflare
                         </Button>
                       </div>
                     </form>

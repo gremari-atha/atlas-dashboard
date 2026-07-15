@@ -214,6 +214,29 @@ export const connectResend = async (
   }
 };
 
+export interface ConnectCloudflarePayload {
+  email_account_id: string;
+  token: string;
+}
+
+export const connectCloudflare = async (
+  payload: ConnectCloudflarePayload,
+): Promise<void> => {
+  const response = await apiFetch("/email/connect-cloudflare", undefined, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = Array.isArray(errorData.message)
+      ? errorData.message[0]
+      : errorData.message;
+    throw new Error(errorMessage || "Gagal menghubungkan Cloudflare");
+  }
+};
+
 export const emailService = {
   getAllEmail,
   getEmailById,
@@ -224,4 +247,5 @@ export const emailService = {
   disconnectEmail,
   initializeConnection,
   connectResend,
+  connectCloudflare,
 };

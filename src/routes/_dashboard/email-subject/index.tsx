@@ -1,13 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowUpDown,
-  Plus,
-  Search,
-  SlidersHorizontal,
-  SquarePen,
-  Trash2,
-} from "lucide-react";
+import { ArrowUpDown, Plus, Search, SquarePen, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";

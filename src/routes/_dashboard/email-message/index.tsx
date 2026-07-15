@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { NoData } from "@/components/custom/no-data";
 import { Pagination } from "@/components/custom/pagination";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
