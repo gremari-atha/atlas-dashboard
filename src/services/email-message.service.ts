@@ -26,6 +26,7 @@ export interface EmailMessage {
   subject: string;
   email_date: Date;
   parsed_data: string;
+  extract_method: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -59,6 +60,28 @@ export const getEmailMessages: GetAllServiceFn<
   });
 };
 
+export const getEmailMessageById = async (
+  id: string,
+): Promise<EmailMessage> => {
+  const response = await apiFetch(`/email-message/${id}`);
+  if (!response.ok) {
+    const errorData = await parseApiResponse(response);
+    const errorMessage = Array.isArray(errorData.message)
+      ? errorData.message[0]
+      : errorData.message;
+    throw new Error(errorMessage || "Gagal mengambil data detail email");
+  }
+
+  const emailMessage = await response.json();
+  return {
+    ...emailMessage,
+    email_date: new Date(emailMessage.email_date),
+    created_at: new Date(emailMessage.created_at),
+    updated_at: new Date(emailMessage.updated_at),
+  };
+};
+
 export const emailMessageService = {
   getEmailMessages,
+  getEmailMessageById,
 };

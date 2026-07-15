@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar, Copy, Key, Mail, Search } from "lucide-react";
+import {
+  Calendar,
+  Copy,
+  Eye,
+  Key,
+  Mail,
+  RefreshCw,
+  Search,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -8,6 +16,12 @@ import { NoData } from "@/components/custom/no-data";
 import { Pagination } from "@/components/custom/pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -22,6 +36,7 @@ import { formatDateIdStandard } from "@/lib/time-converter";
 import type { EmailMessageFilter } from "@/services/email-message.service";
 import {
   GetEmailMessageParamsSchema,
+  getEmailMessageById,
   getEmailMessages,
 } from "@/services/email-message.service";
 
@@ -43,6 +58,10 @@ function RouteComponent() {
       queryKey: ["email-message", searchParam],
       queryFn: ({ signal }) => getEmailMessages({ ...searchParam, signal }),
     });
+
+  const [selectedEmailContent, setSelectedEmailContent] = useState<string>("");
+  const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
   const handleSearchFromEmail = useDebouncedCallback((value: string) => {
     setFilter({ from_email: value });
@@ -76,6 +95,22 @@ function RouteComponent() {
       .catch(() => {
         toast.error("Parsed data gagal disalin");
       });
+  };
+
+  const handleViewEmail = async (id: string) => {
+    setDialogOpen(true);
+    setIsDetailLoading(true);
+    setSelectedEmailContent("");
+    try {
+      const detail = await getEmailMessageById(id);
+      setSelectedEmailContent(detail.parsed_data);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Gagal memuat konten email");
+      setDialogOpen(false);
+    } finally {
+      setIsDetailLoading(false);
+    }
   };
 
   return (
@@ -162,9 +197,15 @@ function RouteComponent() {
                         <Key className="size-3.5 text-primary shrink-0" />
                         <span
                           className="font-mono font-bold text-xs text-foreground truncate"
-                          title={emailMessage.parsed_data}
+                          title={
+                            emailMessage.extract_method === "RAW"
+                              ? "Konten Email Asli"
+                              : emailMessage.parsed_data
+                          }
                         >
-                          {emailMessage.parsed_data}
+                          {emailMessage.extract_method === "RAW"
+                            ? "RAW Email"
+                            : emailMessage.parsed_data}
                         </span>
                       </div>
                     </TableCell>
@@ -177,17 +218,29 @@ function RouteComponent() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() =>
-                          handleCopyParsedData(emailMessage.parsed_data)
-                        }
-                        className="size-8 cursor-pointer hover:bg-muted"
-                        title="Salin Hasil Ekstraksi"
-                      >
-                        <Copy className="size-3.5" />
-                      </Button>
+                      {emailMessage.extract_method === "RAW" ? (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleViewEmail(emailMessage.id)}
+                          className="size-8 cursor-pointer hover:bg-muted"
+                          title="Lihat Konten Email"
+                        >
+                          <Eye className="size-3.5" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            handleCopyParsedData(emailMessage.parsed_data)
+                          }
+                          className="size-8 cursor-pointer hover:bg-muted"
+                          title="Salin Hasil Ekstraksi"
+                        >
+                          <Copy className="size-3.5" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -210,6 +263,47 @@ function RouteComponent() {
           />
         </div>
       )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="md:max-w-4xl max-h-[85vh] flex flex-col p-6 border-border/40 shadow-lg bg-card/95 backdrop-blur-md">
+          <DialogHeader className="border-b border-border/40 pb-3">
+            <DialogTitle className="text-sm font-semibold text-foreground">
+              Konten Asli Email (RAW)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden py-4 flex flex-col justify-center items-center">
+            {isDetailLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                <RefreshCw className="size-8 text-primary animate-spin" />
+                <p className="text-xs text-muted-foreground">
+                  Memuat konten email...
+                </p>
+              </div>
+            ) : (
+              (() => {
+                const content = selectedEmailContent || "";
+                const isHtml =
+                  content.trim().startsWith("<") ||
+                  content.includes("<html>") ||
+                  content.includes("</div>") ||
+                  content.includes("<p>");
+                return isHtml ? (
+                  <iframe
+                    srcDoc={content}
+                    title="Email Raw HTML"
+                    className="w-full h-[60vh] border border-border/40 rounded-lg bg-white"
+                    sandbox=""
+                  />
+                ) : (
+                  <pre className="w-full h-[60vh] p-4 font-mono text-[11px] whitespace-pre-wrap overflow-auto border border-border/40 rounded-lg bg-muted/20 text-foreground leading-normal text-left">
+                    {content || "(Konten email kosong)"}
+                  </pre>
+                );
+              })()
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
