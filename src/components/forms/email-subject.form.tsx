@@ -40,6 +40,7 @@ export function EmailSubjectForm({
   const extractMethodOptions = [
     { title: "OTP_EXTRACT", value: "OTP_EXTRACT" },
     { title: "NETFLIX_URL_EXTRACT", value: "NETFLIX_URL_EXTRACT" },
+    { title: "RAW", value: "RAW" },
   ];
 
   return (
