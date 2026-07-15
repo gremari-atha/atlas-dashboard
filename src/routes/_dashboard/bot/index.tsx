@@ -267,18 +267,6 @@ function RouteComponent() {
               {apiKey ? "Generate Ulang" : "Generate API Key"}
             </Button>
           </div>
-
-          {apiKey && (
-            <div className="bg-muted/10 border border-border/20 rounded-md p-3 space-y-2">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide block">
-                Contoh Konfigurasi config.toml
-              </span>
-              <pre className="text-[10px] font-mono text-muted-foreground bg-muted/20 p-2 rounded overflow-x-auto">
-                {`[api]
-api_key = "${apiKey}"`}
-              </pre>
-            </div>
-          )}
         </CardContent>
       </Card>
 
